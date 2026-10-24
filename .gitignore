@@ -1,0 +1,8 @@
+# 构建产物（ISO / 磁盘镜像 / live root / 打包工作目录）
+leopard-installer.iso
+*.iso
+XJ380.img
+*.img
+*.vmdk
+.iso/
+liveroot/
