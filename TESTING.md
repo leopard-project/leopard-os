@@ -33,7 +33,8 @@
     sh create_vm.sh                # 产出 target.vmdk（默认 1G）
 
 ### 6. 启动
-    sh run_install.sh              # 无头串口；交互安装用 QEMU_DISPLAY 覆盖
+    sh run_install.sh              # 默认图形窗口
+    HEADLESS=1 sh run_install.sh   # 无头（纯串口）；落日志可再加 QEMU_SERIAL=file:/path
 
 ## 四、无头自动安装的串口日志要点
 
@@ -49,7 +50,8 @@
 
     cd img-tools
     sh make_image.sh               # 产出 XJ380.img + XJ380.vmdk（预装系统 FAT 镜像）
-    sh run.sh                      # 直接引导预装镜像
+    sh run.sh                      # 引导预装镜像（默认图形窗口）
+    HEADLESS=1 sh run.sh           # 无头（纯串口）
 
 ## 六、已知问题（详见 Bugzilla 邮件）
 

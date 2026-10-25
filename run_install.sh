@@ -2,9 +2,12 @@
 set -eu
 
 # 启动 ISO 安装（模拟真机）：空目标盘在 AHCI 端口 0（/dev/sata0），ISO 作 CD-ROM 在端口 1。
+# 模式开关（无需改脚本）：
+#   HEADLESS=1   无头（-display none，纯串口）；默认图形窗口
+#   QEMU_SERIAL  串口后端（默认 stdio，可设 file:/path 落日志）
+#   QEMU_DISPLAY 显示后端覆盖（高级）
 # 无头自动安装需先用 INSTALLER_ARGS='sata0 --yes' 重建 live root + ISO（见 build_liveroot.sh）。
-# 可覆盖：VM_DISK（默认 target.vmdk）、OUT_ISO（默认 leopard-installer.iso）、
-#          OVMF_FIRMWARE、QEMU_DISPLAY（默认 none，串口日志）、QEMU_SERIAL（默认 stdio）
+# 可覆盖：VM_DISK（默认 target.vmdk）、OUT_ISO（默认 leopard-installer.iso）、OVMF_FIRMWARE
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 DISK="${VM_DISK:-$ROOT/target.vmdk}"
@@ -26,11 +29,23 @@ done
 [ -n "$OVMF" ] || { echo "找不到 OVMF 固件，请 OVMF_FIRMWARE=/path 指定" >&2; exit 1; }
 echo "使用固件: $OVMF"
 
-exec qemu-system-x86_64 \
+# 无头/图形开关
+if [ "${HEADLESS:-0}" = "1" ]; then
+    DISPLAY_ARG="none"
+elif [ -n "${QEMU_DISPLAY:-}" ]; then
+    DISPLAY_ARG="$QEMU_DISPLAY"
+else
+    DISPLAY_ARG=""
+fi
+
+set -- qemu-system-x86_64 \
   -M q35 -bios "$OVMF" \
   -m 2048 -smp 4 \
   -drive if=none,id=hd,file="$DISK",format=vmdk \
   -device ahci,id=ahci -device ide-hd,bus=ahci.0,drive=hd \
   -drive if=none,id=cd,file="$ISO",media=cdrom \
-  -device ide-cd,bus=ahci.1,drive=cd \
-  -display "${QEMU_DISPLAY:-none}" -serial "${QEMU_SERIAL:-stdio}"
+  -device ide-cd,bus=ahci.1,drive=cd
+if [ -n "$DISPLAY_ARG" ]; then set -- "$@" -display "$DISPLAY_ARG"; fi
+set -- "$@" -serial "${QEMU_SERIAL:-stdio}"
+
+exec "$@"
