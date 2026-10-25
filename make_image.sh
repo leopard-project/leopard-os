@@ -50,9 +50,9 @@ xbps-install -y -r "$STAGE" -R "$REPO" \
     leopard-oobe leopard-shell poweroff initctl leopard-mountd leopard-disk mkfs-fat32 leopard-ime xbps
 
 # 烤仓库进镜像（供 LeopardOS 内 xbps 后续装/卸）+ 写仓库配置
-mkdir -p "$STAGE/system/repo" "$STAGE/system/etc/xbps.d"
+mkdir -p "$STAGE/system/repo" "$STAGE/config/xbps.d"
 cp "$REPO"/* "$STAGE/system/repo/"
-echo "repository=/system/repo" > "$STAGE/system/etc/xbps.d/repo.conf"
+echo "repository=/system/repo" > "$STAGE/config/xbps.d/repo.conf"
 
 # 4. 建裸盘 + GPT(ef00) + FAT32
 rm -f "$IMAGE"

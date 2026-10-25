@@ -10,7 +10,7 @@ LIVEROOT="${LIVEROOT:-$ROOT/liveroot}"
 MEDIA="$LIVEROOT/media"
 
 rm -rf "$LIVEROOT"
-mkdir -p "$LIVEROOT/system/leopard" "$LIVEROOT/system/etc/leopard" "$LIVEROOT/apps/system" "$MEDIA"
+mkdir -p "$LIVEROOT/system/leopard" "$LIVEROOT/system/config" "$LIVEROOT/config" "$LIVEROOT/apps/system" "$MEDIA"
 
 # --- live 工具二进制（解包版，直接跑） ---
 cp "$PROJ/leopard-rc/out/leopard-rc.elf"           "$LIVEROOT/system/leopard/leopard-rc.elf"
@@ -23,7 +23,7 @@ for t in xbps-install xbps-query xbps-create xbps-rindex xbps-remove xbps-pkgdb;
 done
 
 # --- live initrc：尾端跑 installer（不是 getty） ---
-printf '# Leopard live 环境\nrespawn /apps/system/leopard-ime.elf\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/etc/leopard/initrc"
+printf '# Leopard live 环境\nrespawn /apps/system/leopard-ime.elf\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
 
 # --- /media：全部 xbps 包 + 仓库索引 ---
 find "$PROJ" -maxdepth 3 -name '*.xbps' -path '*/out/*' -exec cp {} "$MEDIA/" \;
