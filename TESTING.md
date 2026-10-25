@@ -31,12 +31,12 @@
     cd LeopardOS && sh make_iso.sh         # 产出 leopard-installer.iso
 
 ### 6. 准备空目标盘
-    dd if=/dev/zero of=target.img bs=1M count=1024
+    qemu-img create -f vmdk -o subformat=monolithicSparse target.vmdk 1G
 
 ## 四、启动测试
 
 ### QEMU 启动（带图形窗口，交互需要键盘输入）
-    qemu-system-x86_64 -M q35 -bios /usr/share/ovmf/OVMF.fd -m 2048 -cdrom leopard-installer.iso -drive if=none,id=hd,file=target.img,format=raw -device ahci,id=ahci -device ide-hd,bus=ahci.0,drive=hd -serial stdio
+    qemu-system-x86_64 -M q35 -bios /usr/share/ovmf/OVMF.fd -m 2048 -cdrom leopard-installer.iso -drive if=none,id=hd,file=target.vmdk,format=vmdk -device ahci,id=ahci -device ide-hd,bus=ahci.0,drive=hd -serial stdio
 
 注意：交互安装依赖图形窗口的键盘输入（PS/2），不能用 -display none 无头串口（敲不进去，已实测确认）。
 
@@ -67,5 +67,5 @@
     cd LeopardOS
     sh build_liveroot.sh
     sh make_iso.sh
-    dd if=/dev/zero of=target.img bs=1M count=1024
+    qemu-img create -f vmdk -o subformat=monolithicSparse target.vmdk 1G
     # 然后用「四、启动测试」的 QEMU 命令启动

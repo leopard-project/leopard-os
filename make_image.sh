@@ -64,5 +64,10 @@ mkfs.vfat -F 32 --offset 2048 -S 512 "$IMAGE" "$FAT_KIB" >/dev/null 2>&1
 # 5. 拷进 FAT 分区（@@后是分区起始字节偏移 = 2048*512）
 mcopy -o -s -i "$IMAGE@@$((2048 * 512))" "$STAGE"/* ::
 
+# 6. 转成 vmdk（测试平台虚拟磁盘格式）
+VMDK="$ROOT/XJ380.vmdk"
+rm -f "$VMDK"
+qemu-img convert -f raw -O vmdk -o subformat=monolithicSparse "$IMAGE" "$VMDK"
+
 rm -rf "$STAGE" "$REPO"
-echo "镜像已生成: $IMAGE ($IMG_MIB MiB)"
+echo "镜像已生成: $IMAGE ($IMG_MIB MiB) → $VMDK"

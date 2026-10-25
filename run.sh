@@ -21,7 +21,7 @@ echo "使用固件: $OVMF"
 exec qemu-system-x86_64 \
   -M q35 -bios "$OVMF" \
   -m 2048 -smp 4 \
-  -drive if=none,id=hd,file="$ROOT/XJ380.img",format=raw \
+  -drive if=none,id=hd,file="$ROOT/XJ380.vmdk",format=vmdk \
   -device ahci,id=ahci -device ide-hd,bus=ahci.0,drive=hd,bootindex=0 \
   -serial stdio
 
