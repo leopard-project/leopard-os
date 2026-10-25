@@ -6,7 +6,7 @@ set -eu
 #       mkfs.vfat(dosfstools)、mcopy(mtools)；内核/引导各需其工具链
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-PROJ="$ROOT/.."
+PROJ="$ROOT/../.."
 XBP="$PROJ/leopard-xbps/out"
 
 IMAGE="$ROOT/XJ380.img"

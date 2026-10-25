@@ -1,4 +1,4 @@
-# LeopardOS 安装场景测试操作手册
+# LeopardOS 测试操作手册
 
 ## 一、测试目标
 
@@ -6,12 +6,12 @@
 
 ## 二、前置依赖
 
-- qemu-system-x86_64（含 OVMF 固件，通常 /usr/share/ovmf/OVMF.fd）
+- qemu-system-x86_64（含 OVMF 固件，通常 /usr/share/ovmf/OVMF.fd）、qemu-img
 - python3、ninja、clang（编译内核 / 引导器 / 组件）
 - genisoimage、mtools(mmd/mcopy)、mkfs.vfat（ISO 构建）
-- sgdisk(gdisk)、dd（磁盘镜像）
+- sgdisk(gdisk)、dd（img 途径磁盘镜像）
 
-## 三、构建流程
+## 三、制造流程（模拟真机 ISO 安装）
 
 ### 1. 内核
     cd OpenXSKernel && ninja        # 产出 out/kernel.krl
@@ -24,48 +24,35 @@
       python3 gen_ninja.py && ninja build   # 产出 .elf
       ninja pack                            # 产出 .xbps（/media 安装源）
 
-### 4. 组装 live root
-    cd LeopardOS && sh build_liveroot.sh   # 产出 liveroot/（含 initrc + /media 包）
+### 4. 制作 iso live
+    cd LeopardOS
+    INSTALLER_ARGS='sata0 --yes' sh build_liveroot.sh   # 无头自动安装；交互安装省略 INSTALLER_ARGS
+    sh make_iso.sh                                      # 产出 leopard-installer.iso
 
-### 5. 打包 ISO
-    cd LeopardOS && sh make_iso.sh         # 产出 leopard-installer.iso
+### 5. 创建虚拟机（空目标盘）
+    sh create_vm.sh                # 产出 target.vmdk（默认 1G）
 
-### 6. 准备空目标盘
-    qemu-img create -f vmdk -o subformat=monolithicSparse target.vmdk 1G
+### 6. 启动
+    sh run_install.sh              # 无头串口；交互安装用 QEMU_DISPLAY 覆盖
 
-## 四、启动测试
+## 四、无头自动安装的串口日志要点
 
-### QEMU 启动（带图形窗口，交互需要键盘输入）
-    qemu-system-x86_64 -M q35 -bios /usr/share/ovmf/OVMF.fd -m 2048 -cdrom leopard-installer.iso -drive if=none,id=hd,file=target.vmdk,format=vmdk -device ahci,id=ahci -device ide-hd,bus=ahci.0,drive=hd -serial stdio
+    Partitioning /dev/sata0 → Formatting /dev/sata0p0 as FAT32 →
+    Mounted /dev/sata0p0 at /mnt → Installing base system from /media →
+    Installation complete. Rebooting...
 
-注意：交互安装依赖图形窗口的键盘输入（PS/2），不能用 -display none 无头串口（敲不进去，已实测确认）。
+安装器是 respawn 的，失败会循环 分区→格式化→挂载→安装 而不退出。
 
-### 交互步骤
-1. 启动后安装器列出可用磁盘（Available disks）。
-2. 输入目标盘名（如 sata0）并回车。
-3. 确认提示输入 y 回车（会清空该盘数据）。
-4. 安装器依次执行：分区(lpdisk) → 格式化(mkfs-fat32) → 挂载(/mnt) → xbps 安装 → 重启。
+## 五、img 途径（不经安装器，直接造预装镜像）
 
-## 五、预期结果
+见 `img-tools/` 目录：
 
-| 步骤 | 预期 |
-|------|------|
-| 分区 | GPT + 1 个 ef00 分区，/dev/sata0p0 注册 |
-| 格式化 | FAT32（mkfs-fat32 输出 1072676352 bytes 等）|
-| 挂载 | Mounted /dev/sata0p0 at /mnt |
-| xbps 安装 | 从 /media 安装 14 个包 |
-| 重启 | Installation complete. Rebooting... |
+    cd img-tools
+    sh make_image.sh               # 产出 XJ380.img + XJ380.vmdk（预装系统 FAT 镜像）
+    sh run.sh                      # 直接引导预装镜像
 
 ## 六、已知问题（详见 Bugzilla 邮件）
 
 1. Bug #1（critical）：zstd 解压产出错数据（疑似 brk/mmap 懒分配损坏堆）。xbps 安装步骤会报 Zstd decompression failed（Data corruption / checksum mismatch），是当前安装闭环的阻塞项。
 2. Bug #2（major）：AHCI IOBLKSYNC 空操作 + sata_submit_fast 异步写，写后立即读回脏数据（mount ENOENT，多数被格式化步骤的时间差掩盖）。
 3. 交互模式依赖图形键盘输入；串口 stdio 只回显日志、不喂键盘。
-
-## 七、快速命令清单（已在当前工作区就绪时）
-
-    cd LeopardOS
-    sh build_liveroot.sh
-    sh make_iso.sh
-    qemu-img create -f vmdk -o subformat=monolithicSparse target.vmdk 1G
-    # 然后用「四、启动测试」的 QEMU 命令启动
