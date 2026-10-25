@@ -27,7 +27,7 @@ printf '# Leopard live 环境\nrespawn /apps/system/leopard-ime.elf\nrespawn /ap
 
 # --- /media：全部 xbps 包 + 仓库索引 ---
 find "$PROJ" -maxdepth 3 -name '*.xbps' -path '*/out/*' -exec cp {} "$MEDIA/" \;
-"$PROJ/leopard-xbps/out/xbps-rindex" -a "$MEDIA"/*.xbps >/dev/null 2>&1
+"$PROJ/leopard-xbps/out/xbps-rindex" --compression gzip -a "$MEDIA"/*.xbps >/dev/null 2>&1
 
 echo "live root 已组装: $LIVEROOT"
 echo "  media 包数: $(ls "$MEDIA"/*.xbps 2>/dev/null | wc -l)"
