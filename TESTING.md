@@ -36,6 +36,10 @@
     sh run_install.sh              # 默认图形窗口
     HEADLESS=1 sh run_install.sh   # 无头（纯串口）；落日志可再加 QEMU_SERIAL=file:/path
 
+### 7. 直接启动盘内系统（安装完成后）
+    sh run_system.sh               # 引导 target.vmdk，无 ISO/CD
+    HEADLESS=1 sh run_system.sh    # 无头
+
 ## 四、无头自动安装的串口日志要点
 
     Partitioning /dev/sata0 → Formatting /dev/sata0p0 as FAT32 →
