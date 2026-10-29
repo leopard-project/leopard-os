@@ -15,9 +15,8 @@ mkdir -p "$LIVEROOT/system/leopard" "$LIVEROOT/system/config" "$LIVEROOT/config"
 # --- live 工具二进制（解包版，直接跑） ---
 cp "$PROJ/leopard-rc/out/leopard-rc.elf"           "$LIVEROOT/system/leopard/leopard-rc.elf"
 cp "$PROJ/leopard-installer/out/leopard-installer.elf" "$LIVEROOT/apps/system/leopard-installer.elf"
-cp "$PROJ/leopard-disk/out/lpdisk.elf"             "$LIVEROOT/apps/system/lpdisk.elf"
-cp "$PROJ/mkfs-fat32/out/mkfs-fat32.elf"           "$LIVEROOT/apps/system/mkfs-fat32.elf"
-cp "$PROJ/leopard-ime/out/leopard-ime.elf"         "$LIVEROOT/apps/system/leopard-ime.elf"
+cp "$PROJ/leopard-utils/out/lpdisk.elf"            "$LIVEROOT/apps/system/lpdisk.elf"
+cp "$PROJ/leopard-utils/out/mkfs-fat32.elf"        "$LIVEROOT/apps/system/mkfs-fat32.elf"
 for t in xbps-install xbps-query xbps-create xbps-rindex xbps-remove xbps-pkgdb; do
     cp "$PROJ/leopard-xbps/out/$t" "$LIVEROOT/apps/system/$t"
 done
@@ -25,9 +24,9 @@ done
 # --- live initrc：尾端跑 installer（不是 getty） ---
 # INSTALLER_ARGS 可给 installer 传参，例如无头自动安装 'sata0 --yes'
 if [ -n "${INSTALLER_ARGS:-}" ]; then
-    printf '# Leopard live 环境\nrespawn /apps/system/leopard-ime.elf\nrespawn /apps/system/leopard-installer.elf %s\n' "$INSTALLER_ARGS" > "$LIVEROOT/system/config/initrc"
+    printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf %s\n' "$INSTALLER_ARGS" > "$LIVEROOT/system/config/initrc"
 else
-    printf '# Leopard live 环境\nrespawn /apps/system/leopard-ime.elf\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
+    printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
 fi
 
 # --- /media：全部 xbps 包 + 仓库索引 ---

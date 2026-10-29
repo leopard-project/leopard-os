@@ -33,12 +33,8 @@ pack leopard-rc      gen_ninja.py
 pack leopard-getty   gen_ninja.py
 pack leopard-oobe    gen_ninja.py
 pack leopard-shell   gen_ninja.py
-pack poweroff        gen_ninja.py
-pack initctl         gen_ninja.py
 pack leopard-mountd  gen_ninja.py
-pack leopard-disk    gen_ninja.py
-pack mkfs-fat32      gen_ninja.py
-pack leopard-ime     gen_ninja.py
+pack leopard-utils   gen_ninja.py
 pack leopard-xbps    gen_ninja.py
 
 # 2. 建本地仓库索引
@@ -47,7 +43,7 @@ xbps-rindex -a "$REPO"/*.xbps >/dev/null
 # 3. 把包安装进 stage（pacstrap 风格）
 xbps-install -y -r "$STAGE" -R "$REPO" \
     OpenXSBoot OpenXSKernel leopard-base leopard-rc leopard-getty \
-    leopard-oobe leopard-shell poweroff initctl leopard-mountd leopard-disk mkfs-fat32 leopard-ime xbps
+    leopard-oobe leopard-shell leopard-mountd leopard-utils xbps
 
 # 烤仓库进镜像（供 LeopardOS 内 xbps 后续装/卸）+ 写仓库配置
 mkdir -p "$STAGE/system/repo" "$STAGE/config/xbps.d"
