@@ -57,7 +57,24 @@
     sh run.sh                      # 引导预装镜像（默认图形窗口）
     HEADLESS=1 sh run.sh           # 无头（纯串口）
 
-## 六、已知问题（详见 Bugzilla 邮件）
+## 六、一键无头测试（推荐）
+
+零输入，只看串口日志断言，不敲任何键：
+
+    # 组件改动后：先打包 + 全链路安装测试
+    BUILD=1 sh test_install.sh
+    # 组件已打包：只重跑安装测试
+    sh test_install.sh
+    # 装完验证能启动（断言 rc -> getty -> OOBE）
+    sh test_boot.sh
+
+- `test_install.sh`：空盘 → live ISO → 零输入自动安装 → 断言各步骤日志。成功会重启、失败会关机，
+  都让 QEMU 退出（`-no-reboot` + installer fail-fast），不会挂死；超时退出码 124 视为异常。
+- `test_boot.sh`：引导已装盘，断言 `LeopardRC: init started` → `LeopardGetty: console login` →
+  `Leopard OOBE: first boot setup`。系统停在登录提示，由 timeout 结束（124 属正常）。
+- 工作目录默认 `.testwork`（gitignored）；`KEEP=1` 保留日志、`WORK=` 换路径、`TIMEOUT=` 改超时。
+
+## 七、已知问题（详见 Bugzilla 邮件）
 
 1. Bug #1（critical）：zstd 解压产出错数据（疑似 brk/mmap 懒分配损坏堆）。xbps 安装步骤会报 Zstd decompression failed（Data corruption / checksum mismatch），是当前安装闭环的阻塞项。
 2. Bug #2（major）：AHCI IOBLKSYNC 空操作 + sata_submit_fast 异步写，写后立即读回脏数据（mount ENOENT，多数被格式化步骤的时间差掩盖）。

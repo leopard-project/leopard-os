@@ -7,8 +7,12 @@
 - `make_iso.sh` — 生成 UEFI ISO（live 介质）。
 - `img-tools/make_image.sh` — 一键全流程：先打包所有组件，再组装预装镜像。
 - `img-tools/assemble_image.sh` — 纯组装：只消费各组件 `out/*.xbps`（不现场打包）。
+- `img-tools/build_all.sh` — 按 packages.conf 打包全部组件（只打包，不组装）。
 - `img-tools/packages.conf` — 组件清单（单点真理：目录/构建脚本/包名）。
-- `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测）。
+- `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测；`QEMU_NO_REBOOT=1` 加 `-no-reboot`）。
+- `lib/logcheck.sh` — 测试日志断言库（`assert_log` / `assert_no_log` / `summary`）。
+- `test_install.sh` — 一键无头安装测试（空盘→ISO→零输入自动安装→断言串口日志）。
+- `test_boot.sh` — 无头启动测试（断言 rc→getty→OOBE）。
 - `run_system.sh` / `run_install.sh` / `img-tools/run.sh` — QEMU 跑系统/安装器/预装镜像，均复用 `lib/qemu.sh`。
 - `create_vm.sh` — 生成 VM 磁盘。
 - `tools/makepak.py` — XJPAK10 live-root 打包。

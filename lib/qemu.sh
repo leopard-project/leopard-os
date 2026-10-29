@@ -37,5 +37,7 @@ qemu_boot() {
     fi
     if [ -n "$DISPLAY_ARG" ]; then set -- "$@" -display "$DISPLAY_ARG"; fi
     set -- "$@" -serial "${QEMU_SERIAL:-stdio}"
+    # 测试用：-no-reboot 让「重启」直接退出 QEMU（否则会循环重新引导 CD）
+    if [ "${QEMU_NO_REBOOT:-0}" = "1" ]; then set -- "$@" -no-reboot; fi
     exec "$@"
 }

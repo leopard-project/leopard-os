@@ -6,3 +6,4 @@ XJ380.img
 *.vmdk
 .iso/
 liveroot/
+.testwork/
