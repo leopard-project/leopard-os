@@ -4,7 +4,7 @@ set -eu
 # LeopardOS 安装介质 ISO 构建
 #   live root（目录）→ live-root.img(XJPAK10) → efi.img(FAT32: BOOTX64.EFI+kernel.krl+live-root.img)
 #   → ISO(El Torito EFI boot)
-# 依赖：python3、mkfs.vfat、mtools(mmd/mcopy)、genisoimage
+# 依赖：python3、mkfs.vfat、mtools(mmd/mcopy)、xorriso
 # 可覆盖：LIVEROOT、FAT_MIB、ISO_LABEL、OUT_ISO
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
@@ -32,7 +32,7 @@ mcopy -i "$EFI_IMG" "$WORK/live-root.img" ::/system/live-root.img
 mcopy -i "$EFI_IMG" "$ROOT/boot.conf" ::/system/boot.conf
 
 rm -f "$OUT_ISO"
-genisoimage -o "$OUT_ISO" \
+xorriso -as mkisofs -o "$OUT_ISO" \
     -e efi.img -no-emul-boot \
     -V "$ISO_LABEL" \
     "$WORK"
