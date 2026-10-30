@@ -21,13 +21,21 @@ for t in xbps-install xbps-query xbps-create xbps-rindex xbps-remove xbps-pkgdb;
     cp "$PROJ/leopard-xbps/out/$t" "$LIVEROOT/apps/system/$t"
 done
 
-# --- live initrc：尾端跑 installer（不是 getty） ---
-# INSTALLER_ARGS 可给 installer 传参，例如无头自动安装 'sata0 --yes'
+# --- live 安装器：步骤程序 + 配置（编排器读 /config/leopard-install-*.conf） ---
+mkdir -p "$LIVEROOT/apps/leopard/installer/steps"
+cp "$PROJ/leopard-installer/out/steps/"*.elf "$LIVEROOT/apps/leopard/installer/steps/"
+cp "$PROJ/leopard-installer/data/leopard-install-sequence.conf" "$LIVEROOT/config/leopard-install-sequence.conf"
 if [ -n "${INSTALLER_ARGS:-}" ]; then
-    printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf %s\n' "$INSTALLER_ARGS" > "$LIVEROOT/system/config/initrc"
+    # 无头自动安装：从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'），写 auto 配置
+    set -- $INSTALLER_ARGS
+    printf 'auto=1\ndisk=%s\nscheme=auto\n' "${1:-sata0}" > "$LIVEROOT/config/leopard-install.conf"
 else
-    printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
+    cp "$PROJ/leopard-installer/data/leopard-install.conf" "$LIVEROOT/config/leopard-install.conf"
 fi
+
+# --- live initrc：尾端跑 installer（不是 getty） ---
+# 编排器不解析 argv；auto/disk 等选项走 /config/leopard-install.conf
+printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
 
 # --- /media：全部 xbps 包 + 仓库索引 ---
 find "$PROJ" -maxdepth 3 -name '*.xbps' -path '*/out/*' -exec cp {} "$MEDIA/" \;
