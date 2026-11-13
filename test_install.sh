@@ -2,9 +2,15 @@
 set -eu
 
 # 一键无头安装测试：空盘 -> live ISO -> 零输入自动安装 -> 断言串口日志。
+#
+# 优化点：
+#   - auto 安装使用 finish=shutdown，装完立即关机，不再空等 TIMEOUT；
+#   - 日志出现完成/失败标记后主动结束 QEMU（wait_for_log），单次测试更快；
+#   - 失败时自动打印日志尾部，便于定位。
+#
 # 环境变量：
 #   BUILD=1        先打包所有组件（默认 0，假定已构建）
-#   TIMEOUT=300    QEMU 超时秒数
+#   TIMEOUT=300    最长等待秒数（有早期退出，通常远小于它）
 #   WORK=路径       工作目录（默认 .testwork）
 #   KEEP=1         保留工作目录（默认清理）
 
@@ -26,7 +32,8 @@ if [ "${BUILD:-0}" = "1" ]; then
 fi
 
 echo ">>> 构建 live root + ISO"
-INSTALLER_ARGS="sata0 --yes" LIVEROOT="$WORK/liveroot" sh "$ROOT/build_liveroot.sh"
+INSTALLER_ARGS="sata0 --yes" INSTALLER_FINISH=shutdown \
+    LIVEROOT="$WORK/liveroot" sh "$ROOT/build_liveroot.sh"
 OUT_ISO="$ISO" LIVEROOT="$WORK/liveroot" sh "$ROOT/make_iso.sh"
 
 echo ">>> 建立空目标盘"
@@ -34,24 +41,38 @@ VM_DISK="$DISK" VM_SIZE=1G sh "$ROOT/create_vm.sh"
 
 echo ">>> 无头安装（零输入，最长 ${TIMEOUT}s）"
 : > "$LOG"
-set +e
-timeout "$TIMEOUT" env HEADLESS=1 QEMU_NO_REBOOT=1 QEMU_SERIAL="file:$LOG" \
-    VM_DISK="$DISK" OUT_ISO="$ISO" sh "$ROOT/run_install.sh"
-RC=$?
-set -e
-echo "QEMU 退出码: $RC"
+env HEADLESS=1 QEMU_NO_REBOOT=1 QEMU_SERIAL="file:$LOG" \
+    VM_DISK="$DISK" OUT_ISO="$ISO" sh "$ROOT/run_install.sh" >/dev/null 2>&1 &
+QPID=$!
+
+# 完成标记出现后给 QEMU 一点收尾时间；进程自行退出则直接结束。
+if wait_for_log_pid "$LOG" "$TIMEOUT" "$QPID" \
+        "installer: all steps complete." \
+        "installer: shutting down" \
+        "installer: rebooting"; then
+    sleep 2
+fi
+kill "$QPID" 2>/dev/null || true
+wait "$QPID" 2>/dev/null || true
+echo "QEMU 已结束"
 
 echo ">>> 断言安装日志"
 assert_log "$LOG" "Select target disk" "step 10 select disk"
 assert_log "$LOG" "Create partition table" "step 20 partition"
-assert_log "$LOG" "Format FAT32" "step 30 format"
+assert_log "$LOG" "Format " "step 30 format"
 assert_log "$LOG" "Mount target filesystems" "step 40 mount"
 assert_log "$LOG" "Install packages" "step 50 packages"
 assert_log "$LOG" "Generate fstab / boot.conf" "step 60 config"
 assert_log "$LOG" "Overall verification" "step 80 verify"
-assert_log "$LOG" "installer: all steps complete. rebooting..." "install complete"
+assert_log "$LOG" "installer: all steps complete." "install complete"
 assert_no_log "$LOG" "installer: step failed" "no step failed"
 assert_no_log "$LOG" "auto mode: step failed" "no fail-fast triggered"
 
+if ! summary "无头安装测试"; then
+    echo
+    echo "----- install.log 尾部 -----"
+    tail -60 "$LOG"
+    exit 1
+fi
+
 [ "${KEEP:-0}" = "1" ] || rm -rf "$WORK"
-summary "无头安装测试"

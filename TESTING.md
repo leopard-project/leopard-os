@@ -61,17 +61,19 @@
 
 零输入，只看串口日志断言，不敲任何键：
 
-    # 组件改动后：先打包 + 全链路安装测试
-    BUILD=1 sh test_install.sh
-    # 组件已打包：只重跑安装测试
+    # 全链路：安装 + 启动（默认先打包全部组件，避免用到旧包）
+    sh test_all.sh
+    # 组件已打包：跳过打包
+    BUILD=0 sh test_all.sh
+    # 只跑安装 / 只跑启动
     sh test_install.sh
-    # 装完验证能启动（断言 rc -> getty -> OOBE）
     sh test_boot.sh
 
-- `test_install.sh`：空盘 → live ISO → 零输入自动安装 → 断言各步骤日志。成功会重启、失败会关机，
-  都让 QEMU 退出（`-no-reboot` + installer fail-fast），不会挂死；超时退出码 124 视为异常。
+- `test_install.sh`：空盘 → live ISO → 零输入自动安装（`finish=shutdown`）→ 断言各步骤日志。
+  日志出现「全部步骤完成 / 关机 / 重启」后立即结束 QEMU，不再空等 TIMEOUT。
 - `test_boot.sh`：引导已装盘，断言 `LeopardRC: init started` → `LeopardGetty: console login` →
-  `Leopard OOBE: first boot setup`。系统停在登录提示，由 timeout 结束（124 属正常）。
+  `Leopard OOBE: first boot setup`；出现登录/OOBE 后主动结束 QEMU。
+- `test_all.sh`：`test_install.sh` + `test_boot.sh`，共用同一个 `WORK`，失败时打印日志尾部。
 - 工作目录默认 `.testwork`（gitignored）；`KEEP=1` 保留日志、`WORK=` 换路径、`TIMEOUT=` 改超时。
 
 ## 七、已知问题（详见 Bugzilla 邮件）

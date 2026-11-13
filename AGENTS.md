@@ -11,8 +11,10 @@
 - `img-tools/packages.conf` — 组件清单（单点真理：目录/构建脚本/包名）。
 - `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测；`QEMU_NO_REBOOT=1` 加 `-no-reboot`）。
 - `lib/logcheck.sh` — 测试日志断言库（`assert_log` / `assert_no_log` / `summary`）。
-- `test_install.sh` — 一键无头安装测试（空盘→ISO→零输入自动安装→断言串口日志）。
-- `test_boot.sh` — 无头启动测试（断言 rc→getty→OOBE）。
+- `test_install.sh` — 一键无头安装测试（空盘→ISO→零输入自动安装→断言串口日志；
+  完成/失败标记出现后提前结束 QEMU，auto 用 `finish=shutdown`）。
+- `test_boot.sh` — 无头启动测试（断言 rc→getty→OOBE；出现登录/OOBE 后自动结束）。
+- `test_all.sh` — 安装 + 启动全链路（共用 WORK；失败打印日志尾部）。
 - `run_system.sh` / `run_install.sh` / `img-tools/run.sh` — QEMU 跑系统/安装器/预装镜像，均复用 `lib/qemu.sh`。
 - `create_vm.sh` — 生成 VM 磁盘。
 - `tools/makepak.py` — XJPAK10 live-root 打包。

@@ -17,6 +17,7 @@ cp "$PROJ/leopard-rc/out/leopard-rc.elf"           "$LIVEROOT/system/leopard/leo
 cp "$PROJ/leopard-installer/out/leopard-installer.elf" "$LIVEROOT/apps/system/leopard-installer.elf"
 cp "$PROJ/leopard-utils/out/lpdisk.elf"            "$LIVEROOT/apps/system/lpdisk.elf"
 cp "$PROJ/leopard-utils/out/mkfs-fat32.elf"        "$LIVEROOT/apps/system/mkfs-fat32.elf"
+cp "$PROJ/leopard-utils/out/mkfs-ext4.elf"         "$LIVEROOT/apps/system/mkfs-ext4.elf"
 for t in xbps-install xbps-query xbps-create xbps-rindex xbps-remove xbps-pkgdb; do
     cp "$PROJ/leopard-xbps/out/$t" "$LIVEROOT/apps/system/$t"
 done
@@ -28,7 +29,7 @@ cp "$PROJ/leopard-installer/data/leopard-install-sequence.conf" "$LIVEROOT/confi
 if [ -n "${INSTALLER_ARGS:-}" ]; then
     # 无头自动安装：从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'），写 auto 配置
     set -- $INSTALLER_ARGS
-    printf 'auto=1\ndisk=%s\nscheme=auto\n' "${1:-sata0}" > "$LIVEROOT/config/leopard-install.conf"
+    printf 'auto=1\ndisk=%s\nscheme=ext4\nfinish=%s\n' "${1:-sata0}" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
 else
     cp "$PROJ/leopard-installer/data/leopard-install.conf" "$LIVEROOT/config/leopard-install.conf"
 fi

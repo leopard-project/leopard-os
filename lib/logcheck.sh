@@ -41,3 +41,38 @@ summary() {
     echo "全部通过"
     return 0
 }
+
+# wait_for_log <log> <seconds> <pattern> [pattern...]
+# 轮询日志，出现任一 pattern 返回 0；超时返回 1。
+wait_for_log() {
+    _wfl_log="$1"; _wfl_timeout="$2"; shift 2
+    _wfl_n=0
+    while [ "$_wfl_n" -lt "$_wfl_timeout" ]; do
+        for _wfl_pat in "$@"; do
+            if [ -f "$_wfl_log" ] && grep -qF -- "$_wfl_pat" "$_wfl_log"; then
+                return 0
+            fi
+        done
+        sleep 1
+        _wfl_n=$((_wfl_n + 1))
+    done
+    return 1
+}
+
+# wait_for_log_pid <log> <seconds> <pid> <pattern> [pattern...]
+# 同 wait_for_log，但 pid 已退出时提前返回 1。
+wait_for_log_pid() {
+    _wlp_log="$1"; _wlp_timeout="$2"; _wlp_pid="$3"; shift 3
+    _wlp_n=0
+    while [ "$_wlp_n" -lt "$_wlp_timeout" ]; do
+        kill -0 "$_wlp_pid" 2>/dev/null || return 1
+        for _wlp_pat in "$@"; do
+            if [ -f "$_wlp_log" ] && grep -qF -- "$_wlp_pat" "$_wlp_log"; then
+                return 0
+            fi
+        done
+        sleep 1
+        _wlp_n=$((_wlp_n + 1))
+    done
+    return 1
+}
