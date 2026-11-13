@@ -75,6 +75,9 @@
   `Leopard OOBE: first boot setup`；出现登录/OOBE 后主动结束 QEMU。
 - `test_all.sh`：`test_install.sh` + `test_boot.sh`，共用同一个 `WORK`，失败时打印日志尾部。
 - 工作目录默认 `.testwork`（gitignored）；`KEEP=1` 保留日志、`WORK=` 换路径、`TIMEOUT=` 改超时。
+- QEMU 默认有 `/dev/kvm` 就用 KVM + `-cpu host`，否则回退 TCG；可用 `QEMU_ACCEL=tcg`
+  强制软件模拟。`QEMU_MEM`/`QEMU_SMP`/`QEMU_DISK_BUS=nvme`/`QEMU_NET=1`/`QEMU_AUDIO=1`
+  见 `lib/qemu.sh` 顶部说明。
 
 ## 七、已知问题（详见 Bugzilla 邮件）
 

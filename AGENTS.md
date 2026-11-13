@@ -9,7 +9,10 @@
 - `img-tools/assemble_image.sh` — 纯组装：只消费各组件 `out/*.xbps`（不现场打包）。
 - `img-tools/build_all.sh` — 按 packages.conf 打包全部组件（只打包，不组装）。
 - `img-tools/packages.conf` — 组件清单（单点真理：目录/构建脚本/包名）。
-- `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测；`QEMU_NO_REBOOT=1` 加 `-no-reboot`）。
+- `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测）。参考官方内测指南：
+  `QEMU_ACCEL=auto`（有 /dev/kvm 自动 KVM + `-cpu host`）、`QEMU_MEM`/`QEMU_SMP`、
+  `QEMU_DISK_BUS=sata|nvme`、`QEMU_NET=1`（e1000 + hostfwd 2323）、`QEMU_AUDIO=1`、
+  `QEMU_GDB=1`/`QEMU_PAUSE=1`、`QEMU_NO_REBOOT=1`、`QEMU_SERIAL`。
 - `lib/logcheck.sh` — 测试日志断言库（`assert_log` / `assert_no_log` / `summary`）。
 - `test_install.sh` — 一键无头安装测试（空盘→ISO→零输入自动安装→断言串口日志；
   完成/失败标记出现后提前结束 QEMU，auto 用 `finish=shutdown`）。
