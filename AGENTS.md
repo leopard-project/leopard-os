@@ -12,6 +12,7 @@
 - `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测）。参考官方内测指南：
   `QEMU_ACCEL=auto`（有 /dev/kvm 自动 KVM + `-cpu host`）、`QEMU_MEM`/`QEMU_SMP`、
   `QEMU_DISK_BUS=sata|nvme`、`QEMU_NET=1`（e1000 + hostfwd 2323）、`QEMU_AUDIO=1`、
+  `QEMU_USB=1`（xHCI/USB 键鼠，Leopard 默认走 PS/2）、
   `QEMU_GDB=1`/`QEMU_PAUSE=1`、`QEMU_NO_REBOOT=1`、`QEMU_SERIAL`。
 - `lib/logcheck.sh` — 测试日志断言库（`assert_log` / `assert_no_log` / `summary`）。
 - `test_install.sh` — 一键无头安装测试（空盘→ISO→零输入自动安装→断言串口日志；

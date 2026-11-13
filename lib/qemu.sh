@@ -64,10 +64,15 @@ qemu_boot() {
         set -- "$@" -cpu max
     fi
 
-    # 键盘/鼠标（参考内测指南；headless 下无害）
-    set -- "$@" -device qemu-xhci,id=xhci \
-        -device usb-kbd,bus=xhci.0,port=1 \
-        -device usb-mouse,bus=xhci.0,port=2
+    # 输入设备：Leopard 内核默认只带 PS/2 键鼠；USB HID 需要 CONFIG_KERNEL_BUILTIN_XHCI。
+    # 官方内测镜像（USB 输入）可用 QEMU_USB=1 切到 xHCI/USB。
+    if [ "${QEMU_USB:-0}" = "1" ]; then
+        set -- "$@" -device qemu-xhci,id=xhci \
+            -device usb-kbd,bus=xhci.0,port=1 \
+            -device usb-mouse,bus=xhci.0,port=2
+    else
+        set -- "$@" -device qemu-xhci,id=xhci
+    fi
 
     if [ -n "$ISO" ]; then
         set -- "$@" -device ahci,id=ahci \
