@@ -29,7 +29,7 @@ cp "$PROJ/leopard-installer/data/leopard-install-sequence.conf" "$LIVEROOT/confi
 if [ -n "${INSTALLER_ARGS:-}" ]; then
     # 无头自动安装：从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'），写 auto 配置
     set -- $INSTALLER_ARGS
-    printf 'auto=1\ndisk=%s\nscheme=ext4\nfinish=%s\n' "${1:-sata0}" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
+    printf 'auto=1\ndisk=%s\nscheme=modern\nfinish=%s\n' "${1:-sata0}" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
 else
     cp "$PROJ/leopard-installer/data/leopard-install.conf" "$LIVEROOT/config/leopard-install.conf"
 fi
