@@ -2,7 +2,7 @@
 
 ## 一、测试目标
 
-验证 LeopardOS 安装闭环：live ISO 启动 → 分区 → 格式化 FAT32 → 挂载 → 从 /media 用 xbps 安装软件包 → 重启。
+验证 LeopardOS 安装闭环：live ISO 启动 → 分区（ESP + ext4 root + /users）→ 格式化 → 挂载 → 从 /media 用 xbps 安装软件包 → 重启。
 
 ## 二、前置依赖
 
@@ -42,7 +42,7 @@
 
 ## 四、无头自动安装的串口日志要点
 
-    Partitioning /dev/sata0 → Formatting /dev/sata0p0 as FAT32 →
+    Partitioning /dev/sata0 → Formatting ESP (FAT32) + ext4 root + /users →
     Mounted /dev/sata0p0 at /mnt → Installing base system from /media →
     Installation complete. Rebooting...
 

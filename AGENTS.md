@@ -29,7 +29,10 @@
 第 1、3 列收包并安装。注意 `leopard-xbps` 目录出的包名是 `xbps`（与目录名不同）。
 
 ## 关键事实
-- 镜像组装：`dd` + `sgdisk -n 1:2048 -t 1:ef00` + `mkfs.vfat -F 32 --offset 2048` + `mcopy`。
+- 预装镜像（modern，默认 5 GiB）：GPT = ESP 64 MiB FAT32 + ext4 root + ext4 /users；
+  root/users 用 `mkfs.ext4 -d` 直接铺 `.stage`，ESP 写 `BOOTX64.EFI`、`kernel.krl`、
+  `boot.conf`、`EFI/XJ380/root.bin`。
+- live ISO：live-root.img 解到 tmpfs，安装器再做现代布局。
 - xbps 包/repodata 用 **gzip** 压缩（不是 zstd）——zstd 会触发上游内存 bug（见 OpenXSKernel AGENTS.md）。
 - OVMF 用 `/usr/share/ovmf/OVMF.fd`（合并版），不要用 `OVMF_CODE_4M.fd` 直喂 `-bios`。
 - 版本：OpenXSKernel v2.1.0、OpenXSBoot 2.1、其余 1.0。
