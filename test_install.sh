@@ -50,7 +50,15 @@ if wait_for_log_pid "$LOG" "$TIMEOUT" "$QPID" \
         "installer: all steps complete." \
         "installer: shutting down" \
         "installer: rebooting"; then
-    sleep 2
+    # 正常路径：finish=shutdown 应让 QEMU 自己退出；最多等 15s 兜底。
+    _wait=0
+    while [ "$_wait" -lt 15 ] && kill -0 "$QPID" 2>/dev/null; do
+        sleep 1
+        _wait=$((_wait + 1))
+    done
+    if kill -0 "$QPID" 2>/dev/null; then
+        echo "WARNING: QEMU 在完成标记后仍未退出（关机/重启可能失败）"
+    fi
 fi
 kill "$QPID" 2>/dev/null || true
 wait "$QPID" 2>/dev/null || true

@@ -37,6 +37,9 @@ fi
 # --- live initrc：尾端跑 installer（不是 getty） ---
 # 编排器不解析 argv；auto/disk 等选项走 /config/leopard-install.conf
 printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
+# live 环境也要有权限策略：v5 的 xapi_PowerAction 会先请求 CS 权限，
+# 没有 permissions.conf 时内核会按“禁用模型”处理（现在已修正为放行）。
+cp "$PROJ/leopard-base/data/permissions.conf" "$LIVEROOT/system/config/permissions.conf"
 
 # --- /media：全部 xbps 包 + 仓库索引 ---
 find "$PROJ" -maxdepth 3 -name '*.xbps' -path '*/out/*' -exec cp {} "$MEDIA/" \;
