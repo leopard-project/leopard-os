@@ -37,7 +37,7 @@ INSTALLER_ARGS="sata0 --yes" INSTALLER_FINISH=shutdown \
 OUT_ISO="$ISO" LIVEROOT="$WORK/liveroot" sh "$ROOT/make_iso.sh"
 
 echo ">>> 建立空目标盘"
-VM_DISK="$DISK" VM_SIZE=1G sh "$ROOT/create_vm.sh"
+VM_DISK="$DISK" VM_SIZE="${VM_SIZE:-5G}" sh "$ROOT/create_vm.sh"
 
 echo ">>> 无头安装（零输入，最长 ${TIMEOUT}s）"
 : > "$LOG"

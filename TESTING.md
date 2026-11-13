@@ -30,7 +30,7 @@
     sh make_iso.sh                                      # 产出 leopard-installer.iso
 
 ### 5. 创建虚拟机（空目标盘）
-    sh create_vm.sh                # 产出 target.vmdk（默认 1G）
+    sh create_vm.sh                # 产出 target.vmdk（默认 5G，对齐官方推荐容量）
 
 ### 6. 启动
     sh run_install.sh              # 默认图形窗口
