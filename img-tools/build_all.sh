@@ -11,9 +11,11 @@ MANIFEST="$ROOT/packages.conf"
 
 export PATH="$XBP:$PATH"
 
-# 官方 SDK 先产出 include/运行时对象（obj-tui、obj-extra/start.cpp.o）。
+# 先构建源码 SDK，再打成 XACT CRT（头文件 + 启动对象 + 静态运行时包）。
 echo ">>> build XJ380-SDK"
 (cd "$PROJ/XJ380-SDK" && python3 gen_ninja.py >/dev/null && ninja >/dev/null)
+echo ">>> build XACT-CRT"
+(cd "$PROJ/XACT-CRT" && python3 gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
 
 while read -r dir script _pkg; do
     case "$dir" in ''|'#'*) continue ;; esac
