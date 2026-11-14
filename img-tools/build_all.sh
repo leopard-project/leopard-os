@@ -15,7 +15,7 @@ export PATH="$XBP:$PATH"
 echo ">>> build XJ380-SDK"
 (cd "$PROJ/XJ380-SDK" && python3 tools/gen_ninja.py >/dev/null && ninja >/dev/null)
 echo ">>> build XACT-CRT"
-(cd "$PROJ/XACT-CRT" && python3 gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
+(cd "$PROJ/XACT-CRT" && git submodule update --init --recursive >/dev/null 2>&1 || true; python3 gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
 
 while read -r dir script _pkg; do
     case "$dir" in ''|'#'*) continue ;; esac
