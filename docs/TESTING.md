@@ -11,7 +11,7 @@
 ## 2. 构建组件包
 
 ```sh
-sh image/build_all.sh
+sh build/build_all.sh
 ```
 
 只打包，不组装。产物在各组件 `out/`。
@@ -96,5 +96,5 @@ QEMU_GDB=1 QEMU_PAUSE=1 QEMU_NO_REBOOT=1
 ## 9. 已知限制
 
 - `/media` 仍在 live-root.img 内，启动时随 PE 一起解到 RAM。
-- 预装镜像仍走 `image/packages.conf`，安装器 ISO 走 `../leopard-packages/media.list`，两份清单尚未统一。
+- 预装镜像仍走 `build/packages.conf`，安装器 ISO 走 `../leopard-packages/media.list`，两份清单尚未统一。
 - 交互模式依赖图形键盘；串口 stdio 只回显日志，不喂键盘。

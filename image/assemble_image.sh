@@ -14,7 +14,7 @@ set -eu
 ROOT=$(cd "$(dirname "$0")" && pwd)
 PROJ="$ROOT/../.."
 XBP="$PROJ/leopard-xbps/out"
-MANIFEST="$ROOT/packages.conf"
+MANIFEST="$ROOT/../build/packages.conf"
 
 IMAGE="${IMAGE:-$ROOT/XJ380.img}"
 VMDK="${VMDK:-$ROOT/XJ380.vmdk}"

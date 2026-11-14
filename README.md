@@ -11,7 +11,8 @@ LeopardOS 镜像 / live 介质 / 测试组装仓库。
 ## 目录
 
 ```
-image/   预装镜像组装（build_all / assemble_image / make_image / packages.conf / run_image）
+build/   组件打包（build_all / packages.conf）
+image/   预装镜像组装（assemble_image / make_image / run_image）
 live/    最小 PE + ISO（build_liveroot / make_iso / pe.list / boot.conf / makepak.py）
 tests/   无头测试（test_all / test_install / test_boot / test_cli）
 vm/      空盘和 QEMU（create_vm / run_install / run_system）
@@ -24,7 +25,7 @@ docs/    操作手册（TESTING.md）
 先构建组件包（或使用已有的 `out/*.xbps`）：
 
 ```sh
-sh image/build_all.sh
+sh build/build_all.sh
 ```
 
 生成安装介质：

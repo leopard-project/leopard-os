@@ -5,7 +5,8 @@
 ## 目录 / 脚本
 
 ```
-image/      预装镜像（build_all / assemble_image / make_image / packages.conf / run_image）
+build/      组件打包（build_all / packages.conf）
+image/      预装镜像（assemble_image / make_image / run_image）
 live/       最小 PE + ISO（build_liveroot / make_iso / pe.list / boot.conf / makepak.py）
 tests/      无头测试（test_all / test_install / test_boot / test_cli）
 vm/         空盘与 QEMU（create_vm / run_install / run_system）
@@ -23,8 +24,8 @@ docs/       操作手册（TESTING.md）
 - `live/make_iso.sh` — 生成 UEFI ISO（live 介质）。
 - `image/make_image.sh` — 一键全流程：先打包所有组件，再组装预装镜像。
 - `image/assemble_image.sh` — 纯组装：只消费各组件 `out/*.xbps`（不现场打包）。
-- `image/build_all.sh` — 按 `image/packages.conf` 打包全部组件（只打包，不组装）。
-- `image/packages.conf` — 预装镜像组件清单（目录/构建脚本/包名）。
+- `build/build_all.sh` — 按 `build/packages.conf` 打包全部组件（只打包，不组装）。
+- `build/packages.conf` — 组件清单（目录/构建脚本/包名）。
 - `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测）。
 - `lib/logcheck.sh` — 测试日志断言库（`assert_log` / `assert_no_log` / `summary`）。
 - `tests/test_install.sh` — 空盘→ISO→零输入自动安装→断言串口日志。
@@ -39,7 +40,7 @@ docs/       操作手册（TESTING.md）
 
 - 安装介质 `/media` 的包清单在 `../leopard-packages/media.list`；由
   `leopard-src sync` 生成受控仓库，`live/build_liveroot.sh` 只消费它。
-- 预装镜像的组件清单仍是 `image/packages.conf`，格式 `<目录> <构建脚本> <包名>`。
+- 预装镜像的组件清单仍是 `build/packages.conf`，格式 `<目录> <构建脚本> <包名>`。
   `image/make_image.sh` 读前两列打包，`image/assemble_image.sh` 读第 1、3 列收包并安装。
 - PE-only 包（`leopard-installer`、`xbps-create`、`xbps-rindex`）不得进入
   `media.list`；目标用户态包不得进入 `live/pe.list`。

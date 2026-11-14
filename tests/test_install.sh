@@ -29,7 +29,7 @@ mkdir -p "$WORK"
 
 if [ "${BUILD:-0}" = "1" ]; then
     echo ">>> 打包所有组件"
-    sh "$REPO/image/build_all.sh"
+    sh "$REPO/build/build_all.sh"
 fi
 
 echo ">>> 构建 live root + ISO"
