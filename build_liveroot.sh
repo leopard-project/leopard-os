@@ -28,6 +28,7 @@ cp "$PROJ/leopard-installer/out/steps/"*.elf "$LIVEROOT/apps/leopard/installer/s
 cp "$PROJ/leopard-installer/data/leopard-install-sequence.conf" "$LIVEROOT/config/leopard-install-sequence.conf"
 cp "$PROJ/leopard-installer/data/install-profiles.conf" "$LIVEROOT/config/install-profiles.conf"
 cp "$PROJ/leopard-installer/data/format-profiles.conf" "$LIVEROOT/config/format-profiles.conf"
+cp "$PROJ/leopard-installer/data/package-profiles.conf" "$LIVEROOT/config/package-profiles.conf"
 if [ -n "${INSTALLER_ARGS:-}" ]; then
     # 无头自动安装：从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'），写 auto 配置
     set -- $INSTALLER_ARGS
@@ -35,6 +36,9 @@ if [ -n "${INSTALLER_ARGS:-}" ]; then
     printf 'auto=1\ndisk=%s\nprofile=%s\nscheme=%s\nfinish=%s\n' "${1:-sata0}" "$profile" "$profile" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
     if [ -n "${INSTALLER_MODULES:-}" ]; then
         printf 'modules=%s\n' "$INSTALLER_MODULES" >> "$LIVEROOT/config/leopard-install.conf"
+    fi
+    if [ -n "${INSTALLER_PACKAGE_PROFILE:-}" ]; then
+        printf 'package_profile=%s\n' "$INSTALLER_PACKAGE_PROFILE" >> "$LIVEROOT/config/leopard-install.conf"
     fi
 else
     cp "$PROJ/leopard-installer/data/leopard-install.conf" "$LIVEROOT/config/leopard-install.conf"
