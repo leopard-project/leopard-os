@@ -13,7 +13,7 @@ export PATH="$XBP:$PATH"
 
 # 先构建源码 SDK，再打成 XACT CRT（头文件 + 启动对象 + 静态运行时包）。
 echo ">>> build XJ380-SDK"
-(cd "$PROJ/XJ380-SDK" && python3 gen_ninja.py >/dev/null && ninja >/dev/null)
+(cd "$PROJ/XJ380-SDK" && python3 tools/gen_ninja.py >/dev/null && ninja >/dev/null)
 echo ">>> build XACT-CRT"
 (cd "$PROJ/XACT-CRT" && python3 gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
 
