@@ -26,10 +26,13 @@ done
 mkdir -p "$LIVEROOT/apps/leopard/installer/steps"
 cp "$PROJ/leopard-installer/out/steps/"*.elf "$LIVEROOT/apps/leopard/installer/steps/"
 cp "$PROJ/leopard-installer/data/leopard-install-sequence.conf" "$LIVEROOT/config/leopard-install-sequence.conf"
+cp "$PROJ/leopard-installer/data/install-profiles.conf" "$LIVEROOT/config/install-profiles.conf"
+cp "$PROJ/leopard-installer/data/format-profiles.conf" "$LIVEROOT/config/format-profiles.conf"
 if [ -n "${INSTALLER_ARGS:-}" ]; then
     # 无头自动安装：从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'），写 auto 配置
     set -- $INSTALLER_ARGS
-    printf 'auto=1\ndisk=%s\nscheme=modern\nfinish=%s\n' "${1:-sata0}" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
+    profile="${INSTALLER_PROFILE:-modern}"
+    printf 'auto=1\ndisk=%s\nprofile=%s\nscheme=%s\nfinish=%s\n' "${1:-sata0}" "$profile" "$profile" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
     if [ -n "${INSTALLER_MODULES:-}" ]; then
         printf 'modules=%s\n' "$INSTALLER_MODULES" >> "$LIVEROOT/config/leopard-install.conf"
     fi
