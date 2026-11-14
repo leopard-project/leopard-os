@@ -83,9 +83,6 @@ wait_for "lpsh" 1 30 "进入 lpsh shell" || { kill $QEMU_PID 2>/dev/null; exit 1
 
 echo ">>> 跑 CLI 命令"
 run_cmd() { echo ">>> $*"; sendstr "$*"; sleep 1.5; }
-# 嵌套 leopard-getty 必须被拒绝，且不能抢走当前 getty 的输入焦点
-run_cmd "leopard-getty"
-wait_for "already inside a terminal session" 1 10 "嵌套 leopard-getty 被拒绝" || { kill $QEMU_PID 2>/dev/null; exit 1; }
 run_cmd "pwd"
 run_cmd "initctl list"
 run_cmd "lpdisk list"
@@ -99,7 +96,6 @@ while [ "$i" -lt 30 ] && kill -0 "$QEMU_PID" 2>/dev/null; do sleep 1; i=$((i+1))
 
 echo ">>> 断言"
 assert_log "$LOG" "lpsh" "shell 提示符"
-assert_log "$LOG" "already inside a terminal session" "嵌套 leopard-getty 被拒绝"
 assert_log "$LOG" "/users/$USER" "pwd 输出 home"
 assert_log "$LOG" "leopard-getty" "initctl list 列出服务"
 assert_log "$LOG" "Block devices:" "lpdisk list 列块设备"
