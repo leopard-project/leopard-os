@@ -1,0 +1,26 @@
+# Minimal pre-installation environment (PE) file list.
+#
+# <source relative to project root> <destination relative to live root>
+#
+# Only files needed before the target system is installed belong here.
+# Target userland comes from /media via xbps; do not add it to this list.
+# A source containing '*' is copied into the destination directory.
+
+leopard-rc/out/leopard-rc.elf                          system/leopard/leopard-rc.elf
+leopard-installer/out/leopard-installer.elf            apps/system/leopard-installer.elf
+leopard-installer/out/steps/*.elf                      apps/leopard/installer/steps/
+
+leopard-utils/out/lpdisk.elf                           apps/system/lpdisk.elf
+leopard-utils/out/mkfs-fat32.elf                       apps/system/mkfs-fat32.elf
+leopard-utils/out/mkfs-ext4.elf                        apps/system/mkfs-ext4.elf
+
+leopard-xbps/out/xbps-install                          apps/system/xbps-install
+leopard-xbps/out/xbps-query                            apps/system/xbps-query
+leopard-xbps/out/xbps-remove                           apps/system/xbps-remove
+leopard-xbps/out/xbps-pkgdb                            apps/system/xbps-pkgdb
+
+leopard-installer/data/leopard-install-sequence.conf   config/leopard-install-sequence.conf
+leopard-installer/data/install-profiles.conf           config/install-profiles.conf
+leopard-installer/data/format-profiles.conf            config/format-profiles.conf
+leopard-installer/data/package-profiles.conf           config/package-profiles.conf
+leopard-base/data/permissions.conf                     system/config/permissions.conf
