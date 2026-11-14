@@ -19,6 +19,10 @@ while read -r dir script _pkg; do
     case "$dir" in ''|'#'*) continue ;; esac
     echo ">>> pack $dir"
     (cd "$PROJ/$dir" && python3 "$script" >/dev/null && ninja pack >/dev/null)
+    # In-tree kernel modules: build their separate packages when available.
+    if grep -q "build pack-kmods:" "$PROJ/$dir/build.ninja" 2>/dev/null; then
+        (cd "$PROJ/$dir" && ninja pack-kmods >/dev/null)
+    fi
 done < "$MANIFEST"
 
 # 安装器不在 packages.conf（它只进 live ISO，不装进目标系统），
