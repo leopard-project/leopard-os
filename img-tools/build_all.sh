@@ -11,11 +11,9 @@ MANIFEST="$ROOT/packages.conf"
 
 export PATH="$XBP:$PATH"
 
-# 先构建源码 SDK，再打成 XACT CRT（头文件 + 启动对象 + 静态运行时包）。
-echo ">>> build XJ380-SDK"
-(cd "$PROJ/XJ380-SDK" && python3 tools/gen_ninja.py >/dev/null && ninja >/dev/null)
-echo ">>> build XACT-CRT"
-(cd "$PROJ/XACT-CRT" && git submodule update --init --recursive >/dev/null 2>&1 || true; python3 gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
+# SDK 同时构建 runtime、完整 XACT CRT 和 xact-crt 包（liballoc 来自 submodule）。
+echo ">>> build XJ380-SDK + XACT CRT"
+(cd "$PROJ/XJ380-SDK" && git submodule update --init --recursive >/dev/null 2>&1 || true; python3 tools/gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
 
 while read -r dir script _pkg; do
     case "$dir" in ''|'#'*) continue ;; esac
