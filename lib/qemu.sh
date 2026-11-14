@@ -1,5 +1,5 @@
 # lib/qemu.sh — QEMU 启动共用样板（参考 2026-11-11 官方内测指南）
-# 被 run_install.sh / run_system.sh / img-tools/run.sh 共用。
+# 被 vm/run_install.sh / vm/run_system.sh / image/run_image.sh 共用。
 # 提供：qemu_boot <disk> [iso]
 #
 # 常用环境变量：

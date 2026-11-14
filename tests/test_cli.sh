@@ -5,14 +5,15 @@ set -u
 # 内核键盘输入走 PS/2、串口只输出不回读输入，故用 QEMU monitor sendkey 注入键盘。
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-WORK="${WORK:-$ROOT/.testwork}"
+REPO=$(cd "$ROOT/.." && pwd)
+WORK="${WORK:-$REPO/.testwork}"
 DISK="${DISK:-$WORK/target.vmdk}"
 LOG="$WORK/cli.log"
 MON="${MON:-/tmp/qemu-cli-mon.sock}"
 USER="${CLI_USER:-admin}"
 PASS="${CLI_PASS:-admin}"
 
-. "$ROOT/lib/logcheck.sh"
+. "$REPO/lib/logcheck.sh"
 
 [ -f "$DISK" ] || { echo "无系统盘: $DISK（先跑 test_install.sh，或设 DISK）" >&2; exit 1; }
 

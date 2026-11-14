@@ -10,10 +10,11 @@ set -eu
 # leopard-packages/hostdir/binpkgs 取包，避免旧包/废弃包混入介质。
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-PROJ="$ROOT/.."
-LIVEROOT="${LIVEROOT:-$ROOT/liveroot}"
+REPO=$(cd "$ROOT/.." && pwd)
+PROJ=$(cd "$REPO/.." && pwd)
+LIVEROOT="${LIVEROOT:-$REPO/liveroot}"
 MEDIA="$LIVEROOT/media"
-PE_LIST="$ROOT/live/pe.list"
+PE_LIST="$ROOT/pe.list"
 PKG_DIR="$PROJ/leopard-packages"
 BINPKGS="${LEOPARD_BINPKGS:-$PKG_DIR/hostdir/binpkgs}"
 

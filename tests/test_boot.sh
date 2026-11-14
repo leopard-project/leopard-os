@@ -7,19 +7,20 @@ set -eu
 # 环境变量：WORK（默认 .testwork）/ TIMEOUT（默认 60）
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-WORK="${WORK:-$ROOT/.testwork}"
+REPO=$(cd "$ROOT/.." && pwd)
+WORK="${WORK:-$REPO/.testwork}"
 TIMEOUT="${TIMEOUT:-60}"
 DISK="$WORK/target.vmdk"
 LOG="$WORK/boot.log"
 
-. "$ROOT/lib/logcheck.sh"
+. "$REPO/lib/logcheck.sh"
 
 [ -f "$DISK" ] || { echo "找不到已装系统盘: $DISK（先跑 test_install.sh，或设 WORK）" >&2; exit 1; }
 
 echo ">>> 无头启动（最长 ${TIMEOUT}s；出现登录/OOBE 后自动结束）"
 : > "$LOG"
 env HEADLESS=1 QEMU_NO_REBOOT=1 QEMU_SERIAL="file:$LOG" \
-    VM_DISK="$DISK" sh "$ROOT/run_system.sh" >/dev/null 2>&1 &
+    VM_DISK="$DISK" sh "$REPO/vm/run_system.sh" >/dev/null 2>&1 &
 QPID=$!
 
 if wait_for_log_pid "$LOG" "$TIMEOUT" "$QPID" \

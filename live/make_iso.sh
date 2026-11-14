@@ -19,14 +19,15 @@ set -eu
 # =====================================================================
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-PROJ="$ROOT/.."
+REPO=$(cd "$ROOT/.." && pwd)
+PROJ=$(cd "$REPO/.." && pwd)
 
-OUT_ISO="${OUT_ISO:-$ROOT/leopard-installer.iso}"
-WORK="$ROOT/.iso"
+OUT_ISO="${OUT_ISO:-$REPO/leopard-installer.iso}"
+WORK="$REPO/.iso"
 EFI_IMG="$WORK/efi.img"
 FAT_MIB="${FAT_MIB:-64}"
 ISO_LABEL="${ISO_LABEL:-LEOPARD}"
-LIVEROOT="${LIVEROOT:-$ROOT/liveroot}"
+LIVEROOT="${LIVEROOT:-$REPO/liveroot}"
 
 # ---- 依赖检查 ----------------------------------------------------------
 missing=""
@@ -46,7 +47,7 @@ mkdir -p "$WORK"
 
 # ---- 打包 live root ----------------------------------------------------
 echo "打包 live root → live-root.img ..."
-python3 "$ROOT/tools/makepak.py" "$LIVEROOT" "$WORK/live-root.img"
+python3 "$ROOT/makepak.py" "$LIVEROOT" "$WORK/live-root.img"
 
 # ---- 构建 FAT32 ESP ----------------------------------------------------
 echo "构建 FAT32 ESP (${FAT_MIB} MiB) ..."

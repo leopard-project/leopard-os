@@ -9,3 +9,6 @@ XJ380.img
 .iso/
 liveroot/
 .testwork/
+image/.stage/
+image/.repo/
+image/.work/

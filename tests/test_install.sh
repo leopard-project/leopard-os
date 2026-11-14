@@ -15,34 +15,35 @@ set -eu
 #   KEEP=1         保留工作目录（默认清理）
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-WORK="${WORK:-$ROOT/.testwork}"
+REPO=$(cd "$ROOT/.." && pwd)
+WORK="${WORK:-$REPO/.testwork}"
 TIMEOUT="${TIMEOUT:-300}"
 ISO="$WORK/leopard-installer.iso"
 DISK="$WORK/target.vmdk"
 LOG="$WORK/install.log"
 
-. "$ROOT/lib/logcheck.sh"
+. "$REPO/lib/logcheck.sh"
 
 rm -rf "$WORK"
 mkdir -p "$WORK"
 
 if [ "${BUILD:-0}" = "1" ]; then
     echo ">>> 打包所有组件"
-    sh "$ROOT/img-tools/build_all.sh"
+    sh "$REPO/image/build_all.sh"
 fi
 
 echo ">>> 构建 live root + ISO"
 INSTALLER_ARGS="sata0 --yes" INSTALLER_FINISH=shutdown \
-    LIVEROOT="$WORK/liveroot" sh "$ROOT/build_liveroot.sh"
-OUT_ISO="$ISO" LIVEROOT="$WORK/liveroot" sh "$ROOT/make_iso.sh"
+    LIVEROOT="$WORK/liveroot" sh "$REPO/live/build_liveroot.sh"
+OUT_ISO="$ISO" LIVEROOT="$WORK/liveroot" sh "$REPO/live/make_iso.sh"
 
 echo ">>> 建立空目标盘"
-VM_DISK="$DISK" VM_SIZE="${VM_SIZE:-5G}" sh "$ROOT/create_vm.sh"
+VM_DISK="$DISK" VM_SIZE="${VM_SIZE:-5G}" sh "$REPO/vm/create_vm.sh"
 
 echo ">>> 无头安装（零输入，最长 ${TIMEOUT}s）"
 : > "$LOG"
 env HEADLESS=1 QEMU_NO_REBOOT=1 QEMU_SERIAL="file:$LOG" \
-    VM_DISK="$DISK" OUT_ISO="$ISO" sh "$ROOT/run_install.sh" >/dev/null 2>&1 &
+    VM_DISK="$DISK" OUT_ISO="$ISO" sh "$REPO/vm/run_install.sh" >/dev/null 2>&1 &
 QPID=$!
 
 # 完成标记出现后给 QEMU 一点收尾时间；进程自行退出则直接结束。

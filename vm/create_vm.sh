@@ -6,7 +6,8 @@ set -eu
 #           VM_FORMAT=vmdk|raw（默认 vmdk；raw 对应内测的 XJ380.img 风格）
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-DISK="${VM_DISK:-$ROOT/target.vmdk}"
+REPO=$(cd "$ROOT/.." && pwd)
+DISK="${VM_DISK:-$REPO/target.vmdk}"
 SIZE="${VM_SIZE:-5G}"
 FORMAT="${VM_FORMAT:-vmdk}"
 

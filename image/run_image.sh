@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-# 引导预装镜像 XJ380.vmdk（img 途径，无安装器）。
+# 引导预装镜像 image/XJ380.vmdk（无安装器）。
 # 模式开关（见 lib/qemu.sh）：HEADLESS / QEMU_SERIAL / QEMU_DISPLAY / OVMF_FIRMWARE
 
 ROOT=$(cd "$(dirname "$0")" && pwd)

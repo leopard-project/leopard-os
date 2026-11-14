@@ -7,7 +7,8 @@ set -eu
 # 可覆盖：VM_DISK（默认 target.vmdk）
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
-DISK="${VM_DISK:-$ROOT/target.vmdk}"
+REPO=$(cd "$ROOT/.." && pwd)
+DISK="${VM_DISK:-$REPO/target.vmdk}"
 
-. "$ROOT/lib/qemu.sh"
+. "$ROOT/../lib/qemu.sh"
 qemu_boot "$DISK"

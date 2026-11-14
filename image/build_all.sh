@@ -26,7 +26,7 @@ while read -r dir script _pkg; do
 done < "$MANIFEST"
 
 # 安装器不在 packages.conf（它只进 live ISO，不装进目标系统），
-# 但 build_liveroot.sh 直接取它的 out/*.elf，所以这里也要刷新。
+# 但 live/build_liveroot.sh 直接取它的 out/*.elf，所以这里也要刷新。
 echo ">>> build leopard-installer"
 (cd "$PROJ/leopard-installer" && python3 gen_ninja.py >/dev/null && ninja build >/dev/null && ninja pack >/dev/null)
 
