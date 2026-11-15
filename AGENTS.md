@@ -55,4 +55,4 @@ docs/       操作手册（TESTING.md）
   镜像从 live-root.img 拆出去，并在引导器/内核侧提供访问方式，尚未实现。
 - xbps 包/repodata 用 **gzip** 压缩（不是 zstd）——zstd 会触发上游内存 bug（见 OpenXSKernel AGENTS.md）。
 - OVMF 用 `/usr/share/ovmf/OVMF.fd`（合并版），不要用 `OVMF_CODE_4M.fd` 直喂 `-bios`。
-- 版本：OpenXSKernel v2.2.0_2、OpenXSBoot 2.1.1_2、leopard-getty 1.0、其余 1.0。
+- 版本：OpenXSKernel v2.2.1_1、OpenXSBoot 2.1.1_2、leopard-getty 1.0、leopard-doas 1.0.2、其余 1.0。
