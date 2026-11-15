@@ -46,6 +46,14 @@ mkdir -p "$WORK"
 [ -d "$LIVEROOT" ] || { echo "live root 目录不存在: $LIVEROOT" >&2; exit 1; }
 
 # ---- 打包 live root ----------------------------------------------------
+# Defense in depth: make_iso 也可能直接消费一个已经组装好的 liveroot。
+# PE 可执行文件没有 x 位时，initrd 启动会报 "Not Executable"。
+find "$LIVEROOT/apps" "$LIVEROOT/system" -type f -name '*.elf' \
+    -exec chmod 0755 {} + 2>/dev/null || true
+for f in "$LIVEROOT"/apps/system/xbps-*; do
+    [ -e "$f" ] && chmod 0755 "$f"
+done
+
 echo "打包 live root → live-root.img ..."
 python3 "$ROOT/makepak.py" "$LIVEROOT" "$WORK/live-root.img"
 

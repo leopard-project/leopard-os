@@ -60,6 +60,26 @@ copy_pe() {
 }
 copy_pe
 
+# PE 里的 .elf / xbps 工具必须是可执行的。源码树的 mode 可能被归档/复制
+# 过程丢掉；这里统一修正，并在离开前做一次硬校验，避免生成一个
+# “Not Executable” 的 initrd。
+ensure_pe_modes() {
+        find "$LIVEROOT/apps" "$LIVEROOT/system" -type f -name '*.elf' \
+                -exec chmod 0755 {} + 2>/dev/null || true
+        for f in "$LIVEROOT"/apps/system/xbps-*; do
+                [ -e "$f" ] && chmod 0755 "$f"
+        done
+
+        for f in \
+                "$LIVEROOT/system/leopard/leopard-rc.elf" \
+                "$LIVEROOT/apps/leopard/leopard-conhost.elf" \
+                "$LIVEROOT/apps/system/leopard-installer.elf"; do
+                [ -f "$f" ] || die "missing PE executable: $f"
+                [ -x "$f" ] || die "PE file is not executable: $f"
+        done
+}
+ensure_pe_modes
+
 # 安装选项：无头自动安装写 auto=1，否则用默认交互配置
 if [ -n "${INSTALLER_ARGS:-}" ]; then
         # 从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'）
@@ -76,9 +96,9 @@ else
         cp "$PROJ/leopard-installer/data/leopard-install.conf" "$LIVEROOT/config/leopard-install.conf"
 fi
 
-# live initrc：尾端跑 installer（不是 getty）
+# live initrc：conhost 拥有 console/VT，在 PTY 上跑 installer
 # 编排器不解析 argv；auto/disk 等选项走 /config/leopard-install.conf
-printf '# Leopard live 环境\nrespawn /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
+printf '# Leopard live 环境\nrespawn /apps/leopard/leopard-conhost.elf /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
 
 # --- 3. /media：只包含 media.list 的包 + 索引 -----------------------------
 copy_media() {

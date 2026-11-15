@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """目录树 -> XJPAK10 live root 镜像（initramfs 等价物）。用法：makepak.py <root_dir> <out.img>"""
-import os, struct, sys
+import os, stat, struct, sys
 
 MAGIC = b"XJPAK10"           # 8 字节（含 NUL）
 TYPE_FILE = 1
@@ -13,19 +13,20 @@ def pack(root_dir, out_path):
         rel = os.path.relpath(dirpath, root_dir)
         for d in sorted(dirnames):
             p = ("/" + os.path.join(rel, d).replace(os.sep, "/")).replace("//", "/")
-            entries.append((p, TYPE_DIR, b""))
+            entries.append((p, TYPE_DIR, b"", 0o755))
         for f in sorted(filenames):
             fp = os.path.join(dirpath, f)
             p = ("/" + os.path.join(rel, f).replace(os.sep, "/")).replace("//", "/")
-            entries.append((p, TYPE_FILE, open(fp, "rb").read()))
+            mode = stat.S_IMODE(os.stat(fp).st_mode)
+            entries.append((p, TYPE_FILE, open(fp, "rb").read(), mode))
 
     out = bytearray()
     out += MAGIC.ljust(8, b"\x00")
     out += struct.pack("<Q", len(entries))
-    for (path, typ, data) in entries:
+    for (path, typ, data, mode) in entries:
         pb = path.encode("utf-8")
         assert 0 < len(pb) < 512, "path too long: " + path
-        out += struct.pack("<HHIQ", len(pb), typ, 0, len(data))
+        out += struct.pack("<HHIQ", len(pb), typ, mode & 0o7777, len(data))
         out += pb
         if typ == TYPE_FILE:
             out += data

@@ -12,3 +12,7 @@ liveroot/
 image/.stage/
 image/.repo/
 image/.work/
+
+# Python 缓存
+__pycache__/
+*.pyc
