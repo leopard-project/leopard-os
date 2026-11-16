@@ -14,8 +14,8 @@ export PATH="$XBP:$PATH"
 
 # The SDK builds runtime, the full XACT CRT and the xact-crt package
 # (liballoc comes from the submodule).
-echo ">>> build XJ380-SDK + XACT CRT"
-(cd "$PROJ/XJ380-SDK" && git submodule update --init --recursive >/dev/null 2>&1 || true; python3 tools/gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
+echo ">>> build leopard-sdk + XACT CRT"
+(cd "$PROJ/leopard-sdk" && git submodule update --init --recursive >/dev/null 2>&1 || true; python3 tools/gen_ninja.py >/dev/null && ninja >/dev/null && ninja pack >/dev/null)
 
 while read -r dir script _pkg; do
     case "$dir" in ''|'#'*) continue ;; esac

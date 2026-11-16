@@ -73,7 +73,7 @@ docs/       操作手册（TESTING.md）
   `core.packages` + `group.<id>` + `package.<id>` 声明式模型；`standard`（默认）
   含控制台工具和 IME，`full` 再加网络/USB 模块。分区布局只看
   `install-profiles.conf`。
-- **关机/重启权限**：OpenXSKernel 2.2.1 起 `XAPI_POWER_ACTION` 只允许
+- **关机/重启权限**：leopard-xsk 2.2.1 起 `XAPI_POWER_ACTION` 只允许
   Root/System；Admin 登录后使用 `doas poweroff` / `doas reboot`，测试也走这条路径。
 - 预装镜像（modern，默认 5 GiB）：GPT = ESP 64 MiB FAT32 + ext4 root + ext4 /users；
   root/users 用 `mkfs.ext4 -d` 直接铺 `.stage`，ESP 写 `BOOTX64.EFI`、`kernel.krl`、
@@ -81,11 +81,11 @@ docs/       操作手册（TESTING.md）
 - live ISO：live-root.img 解到 tmpfs，安装器再做现代布局。当前 `/media` 仍在
   live-root.img 内（会随 PE 一起进 RAM）；真正的“介质上的 /media”需要把 media
   镜像从 live-root.img 拆出去，并在引导器/内核侧提供访问方式，尚未实现。
-- xbps 包/repodata 用 **gzip** 压缩（不是 zstd）——zstd 会触发上游内存 bug（见 OpenXSKernel AGENTS.md）。
+- xbps 包/repodata 用 **gzip** 压缩（不是 zstd）——zstd 会触发上游内存 bug（见 leopard-xsk AGENTS.md）。
 - OVMF 用 `/usr/share/ovmf/OVMF.fd`（合并版），不要用 `OVMF_CODE_4M.fd` 直喂 `-bios`。
-- 版本：OpenXSKernel v2.2.1_1（本次重建：移除 XAPI 文本 syscall；PTY fd
+- 版本：leopard-xsk v2.2.1_1（本次重建：移除 XAPI 文本 syscall；PTY fd
   实验已回退，不升版本）、
-  OpenXSBoot 2.1.1_2、leopard-base 1.0.2_1、leopard-rc 1.0_4、
+  leopard-boot 2.1.1_2、leopard-base 1.0.2_1、leopard-rc 1.0_4、
   leopard-getty 1.0_5、leopard-conhost 1.0_6、leopard-doas 1.0_2、
   leopard-ime 1.1_1、leopard-shell 1.0_5、leopard-utils 1.0_2、
   leopard-installer 1.6.0_1、lpcurses 1.0_2、其余 1.0_1。

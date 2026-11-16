@@ -62,8 +62,8 @@ echo "构建 FAT32 ESP (${FAT_MIB} MiB) ..."
 dd if=/dev/zero of="$EFI_IMG" bs=1M count="$FAT_MIB" status=none
 mkfs.vfat -F 32 "$EFI_IMG" >/dev/null 2>&1
 mmd  -i "$EFI_IMG" ::/EFI ::/EFI/BOOT ::/system
-mcopy -i "$EFI_IMG" "$PROJ/OpenXSBoot/out/BOOTX64.efi"  ::/EFI/BOOT/BOOTX64.EFI
-mcopy -i "$EFI_IMG" "$PROJ/OpenXSKernel/out/kernel.krl" ::/system/kernel.krl
+mcopy -i "$EFI_IMG" "$PROJ/leopard-boot/out/BOOTX64.efi"  ::/EFI/BOOT/BOOTX64.EFI
+mcopy -i "$EFI_IMG" "$PROJ/leopard-xsk/out/kernel.krl" ::/system/kernel.krl
 mcopy -i "$EFI_IMG" "$WORK/live-root.img"               ::/system/live-root.img
 mcopy -i "$EFI_IMG" "$ROOT/boot.conf"                   ::/system/boot.conf
 
