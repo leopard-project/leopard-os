@@ -121,6 +121,9 @@ qemu_boot() {
 
     set -- "$@" -serial "${QEMU_SERIAL:-stdio}"
 
+    # Optional HMP monitor socket/channel, used by TUI tests to inject keys.
+    if [ -n "${QEMU_MONITOR:-}" ]; then set -- "$@" -monitor "$QEMU_MONITOR"; fi
+
     if [ "${QEMU_GDB:-0}" = "1" ]; then set -- "$@" -s; fi
     if [ "${QEMU_PAUSE:-0}" = "1" ]; then set -- "$@" -S; fi
 

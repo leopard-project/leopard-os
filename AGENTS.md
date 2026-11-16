@@ -8,7 +8,7 @@
 build/      组件打包（build_all / packages.conf）
 image/      预装镜像（assemble_image / make_image / run_image）
 live/       最小 PE + ISO（build_liveroot / make_iso / pe.list / boot.conf / makepak.py）
-tests/      无头测试（test_all / test_install / test_boot / test_cli）
+tests/      无头测试（test_all / test_install / test_install_tui / test_boot / test_cli）
 vm/         空盘与 QEMU（create_vm / run_install / run_system）
 lib/        共用库（qemu.sh / logcheck.sh）
 docs/       操作手册（TESTING.md）
@@ -30,6 +30,8 @@ docs/       操作手册（TESTING.md）
 - `lib/qemu.sh` — QEMU 共用样板（`qemu_boot <disk> [iso]` + OVMF 探测）。
 - `lib/logcheck.sh` — 测试日志断言库（`assert_log` / `assert_no_log` / `summary`）。
 - `tests/test_install.sh` — 空盘→ISO→零输入自动安装→断言串口日志。
+- `tests/test_install_tui.sh` — 交互 TUI 安装：QEMU monitor `sendkey` 走完
+  欢迎/磁盘/方案/确认/收尾，串口断言 `installer: ui ...` 标记。
 - `tests/test_boot.sh` — 无头启动测试（rc→getty→OOBE）。
 - `tests/test_all.sh` — 安装 + 启动全链路（共用 WORK）。
 - `tests/test_cli.sh` — OOBE 建号→登录→跑 CLI→poweroff。
@@ -56,7 +58,13 @@ docs/       操作手册（TESTING.md）
 - **无头串口输出**：conhost 把 PTY 输出镜像到串口（PTY serial mirror），
   安装器另外把步骤日志/顶层消息直接镜像到串口；因此 `tests/test_install.sh`
   和 `tests/test_boot.sh` 只 grep QEMU serial 日志即可。串口仍是输出-only，
-  键盘输入走 PS/2，`test_cli.sh` 用 QEMU monitor 注入。
+  键盘输入走 PS/2，`test_cli.sh` / `test_install_tui.sh` 用 QEMU monitor 注入。
+- **PTY fd 引用计数**：`vfs_close()` 只在 `node->refcount == 0` 时调用 PTY
+  close 回调。fork 出的子进程替换 fd 1/2 时不能把 `slave_fds` 减到 0，否则
+  conhost 往 master 写键盘会得到 EIO。TUI 安装依赖这条修复。
+- **安装器 TUI**：`main.c` 独占 lpcurses 屏幕；步骤通过 `LI_UI_FD` /
+  `LI_UI_OUT_FD` 发菜单/输入/确认请求。`auto=1` 和非 tty 不初始化 curses；
+  `LEOPARD_INSTALL_TUI=0` 强制行模式。
 - **安装器软件方案**：`leopard-installer/data/package-profiles.conf` 是
   `core.packages` + `group.<id>` + `package.<id>` 声明式模型；`standard`（默认）
   含控制台工具和 IME，`full` 再加网络/USB 模块。分区布局只看
@@ -71,8 +79,8 @@ docs/       操作手册（TESTING.md）
   镜像从 live-root.img 拆出去，并在引导器/内核侧提供访问方式，尚未实现。
 - xbps 包/repodata 用 **gzip** 压缩（不是 zstd）——zstd 会触发上游内存 bug（见 OpenXSKernel AGENTS.md）。
 - OVMF 用 `/usr/share/ovmf/OVMF.fd`（合并版），不要用 `OVMF_CODE_4M.fd` 直喂 `-bios`。
-- 版本：OpenXSKernel v2.2.1_1（本次只重建，不升版本）、OpenXSBoot 2.1.1_2、
-  leopard-base 1.0.2_1、leopard-rc 1.0_4、leopard-getty 1.0_5、
-  leopard-conhost 1.0_5、leopard-doas 1.0_2、leopard-ime 1.1_1、
-  leopard-shell 1.0_5、leopard-utils 1.0_2、leopard-installer 1.5.1_1、
-  其余 1.0_1。
+- 版本：OpenXSKernel v2.2.1_1（本次重建：修复 PTY fd 引用计数，不升版本）、
+  OpenXSBoot 2.1.1_2、leopard-base 1.0.2_1、leopard-rc 1.0_4、
+  leopard-getty 1.0_5、leopard-conhost 1.0_5、leopard-doas 1.0_2、
+  leopard-ime 1.1_1、leopard-shell 1.0_5、leopard-utils 1.0_2、
+  leopard-installer 1.6.0_1、lpcurses 1.0_2、其余 1.0_1。
