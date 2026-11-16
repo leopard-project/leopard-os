@@ -1,9 +1,9 @@
 #!/bin/sh
 set -eu
 
-# 创建空目标盘（模拟真机安装的空硬盘）。
-# 环境变量：VM_DISK（默认 target.vmdk）、VM_SIZE（默认 5G）、
-#           VM_FORMAT=vmdk|raw（默认 vmdk；raw 对应内测的 XJ380.img 风格）
+# Create an empty target disk (simulates a blank disk on real hardware).
+# Environment: VM_DISK (default target.vmdk), VM_SIZE (default 5G),
+#              VM_FORMAT=vmdk|raw (default vmdk; raw matches the beta XJ380.img style)
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$ROOT/.." && pwd)

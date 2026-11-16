@@ -1,23 +1,23 @@
-# lib/qemu.sh — QEMU 启动共用样板（参考 2026-11-11 官方内测指南）
-# 被 vm/run_install.sh / vm/run_system.sh / image/run_image.sh 共用。
-# 提供：qemu_boot <disk> [iso]
+# lib/qemu.sh — shared QEMU launch boilerplate (per the 2026-11-11 official beta guide)
+# Shared by vm/run_install.sh / vm/run_system.sh / image/run_image.sh.
+# Provides: qemu_boot <disk> [iso]
 #
-# 常用环境变量：
-#   HEADLESS=1            无显示（测试默认）
-#   QEMU_SERIAL=...       stdio（默认）/ file:/path
-#   QEMU_DISPLAY=gtk     非 headless 时的显示后端
-#   OVMF_FIRMWARE=...     固件路径
-#   QEMU_MEM=2048         内存 MiB
-#   QEMU_SMP=4            vCPU 数
+# Common environment variables:
+#   HEADLESS=1            no display (test default)
+#   QEMU_SERIAL=...       stdio (default) / file:/path
+#   QEMU_DISPLAY=gtk      display backend when not headless
+#   OVMF_FIRMWARE=...     firmware path
+#   QEMU_MEM=2048         memory MiB
+#   QEMU_SMP=4            vCPU count
 #   QEMU_ACCEL=auto       auto / kvm / tcg
-#   QEMU_DISK_BUS=sata    sata / nvme（兼容性测试）
-#   QEMU_NET=1            加 e1000 + user net（hostfwd 2323）
-#   QEMU_AUDIO=1          加 ich9-hda + sdl 音频（需要显示）
-#   QEMU_GDB=1            -s（gdb :1234）；QEMU_PAUSE=1 再加 -S
-#   QEMU_NO_REBOOT=1      -no-reboot（测试用）
-#   QEMU_STRICT_BOOT=0    关闭 -boot strict=on
+#   QEMU_DISK_BUS=sata    sata / nvme (compatibility tests)
+#   QEMU_NET=1            add e1000 + user net (hostfwd 2323)
+#   QEMU_AUDIO=1          add ich9-hda + sdl audio (needs a display)
+#   QEMU_GDB=1            -s (gdb :1234); QEMU_PAUSE=1 also adds -S
+#   QEMU_NO_REBOOT=1      -no-reboot (for tests)
+#   QEMU_STRICT_BOOT=0    disable -boot strict=on
 
-# 找 OVMF 固件（OVMF_FIRMWARE 覆盖），找不到则退出
+# Locate OVMF firmware (OVMF_FIRMWARE overrides); exit if not found
 qemu_find_ovmf() {
     OVMF=""
     for f in "${OVMF_FIRMWARE:-}" /usr/share/ovmf/OVMF.fd /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd /usr/share/edk2/x64/OVMF_CODE.fd /usr/share/edk2-ovmf/x64/OVMF_CODE.fd; do
@@ -32,14 +32,14 @@ qemu_has_kvm() {
 }
 
 # qemu_boot <disk> [iso]
-#   有 iso：CD bootindex=0，硬盘 bootindex=1（先装系统）
-#   无 iso：硬盘 bootindex=0（直接引导盘内系统）
+#   with iso: CD bootindex=0, disk bootindex=1 (install first)
+#   no iso: disk bootindex=0 (boot the installed system directly)
 qemu_boot() {
     DISK="$1"
     ISO="${2:-}"
     qemu_find_ovmf
 
-    # 磁盘格式：显式 QEMU_DISK_FORMAT，否则按扩展名
+    # Disk format: explicit QEMU_DISK_FORMAT, otherwise by extension
     FORMAT="${QEMU_DISK_FORMAT:-}"
     if [ -z "$FORMAT" ]; then
         case "$DISK" in
@@ -64,8 +64,9 @@ qemu_boot() {
         set -- "$@" -cpu max
     fi
 
-    # 输入设备：Leopard 内核默认只带 PS/2 键鼠；USB HID 需要 CONFIG_KERNEL_BUILTIN_XHCI。
-    # 官方内测镜像（USB 输入）可用 QEMU_USB=1 切到 xHCI/USB。
+    # Input devices: the Leopard kernel ships PS/2 keyboard/mouse only; USB HID
+    # needs CONFIG_KERNEL_BUILTIN_XHCI. For the official beta image (USB input)
+    # set QEMU_USB=1 to switch to xHCI/USB.
     if [ "${QEMU_USB:-0}" = "1" ]; then
         set -- "$@" -device qemu-xhci,id=xhci \
             -device usb-kbd,bus=xhci.0,port=1 \
@@ -123,7 +124,7 @@ qemu_boot() {
     if [ "${QEMU_GDB:-0}" = "1" ]; then set -- "$@" -s; fi
     if [ "${QEMU_PAUSE:-0}" = "1" ]; then set -- "$@" -S; fi
 
-    # 测试用：-no-reboot 让「重启」直接退出 QEMU
+    # For tests: -no-reboot makes a "reboot" exit QEMU directly
     if [ "${QEMU_NO_REBOOT:-0}" = "1" ]; then set -- "$@" -no-reboot; fi
 
     exec "$@"

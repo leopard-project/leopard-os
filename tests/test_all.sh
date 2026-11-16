@@ -1,9 +1,10 @@
 #!/bin/sh
 set -eu
 
-# 一键全链路测试：安装（空盘 + ISO）→ 引导装好的盘。
-# 环境变量：BUILD=0（跳过打包，默认 1 会先打包避免旧包）、TIMEOUT（安装超时，默认 300）、
-#           WORK（默认 .testwork）、KEEP=1（保留工作目录）
+# Full end-to-end test: install (empty disk + ISO) → boot the installed disk.
+# Environment: BUILD=0 (skip packing; default 1 packs first to avoid stale packages),
+#              TIMEOUT (install timeout, default 300), WORK (default .testwork),
+#              KEEP=1 (keep the work directory)
 ROOT=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$ROOT/.." && pwd)
 WORK="${WORK:-$REPO/.testwork}"

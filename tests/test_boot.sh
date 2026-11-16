@@ -1,10 +1,11 @@
 #!/bin/sh
 set -eu
 
-# 无头启动测试：引导已安装的盘，断言 rc -> getty -> OOBE。
+# Headless boot test: boot the installed disk and assert rc -> getty -> OOBE.
 #
-# 优化点：日志出现 OOBE/登录提示后主动结束 QEMU，不再空等 TIMEOUT。
-# 环境变量：WORK（默认 .testwork）/ TIMEOUT（默认 60）
+# Optimization: once the OOBE/login prompt appears, stop QEMU early instead of
+# idling until TIMEOUT.
+# Environment: WORK (default .testwork) / TIMEOUT (default 60)
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$ROOT/.." && pwd)

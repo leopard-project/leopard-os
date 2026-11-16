@@ -1,8 +1,8 @@
-# lib/logcheck.sh — 测试脚本共用日志断言
-# 用法：. "$ROOT/lib/logcheck.sh"
-#   assert_log    <log> <固定字符串> <说明>     # 日志必须包含
-#   assert_no_log <log> <固定字符串> <说明>     # 日志不得包含
-#   summary <标题>                              # 汇总；FAIL>0 返回非 0
+# lib/logcheck.sh — shared log assertions for test scripts
+# Usage: . "$ROOT/lib/logcheck.sh"
+#   assert_log    <log> <literal> <desc>     # log must contain
+#   assert_no_log <log> <literal> <desc>     # log must not contain
+#   summary <title>                          # summary; returns non-zero if FAIL>0
 
 PASS=0
 FAIL=0
@@ -43,7 +43,7 @@ summary() {
 }
 
 # wait_for_log <log> <seconds> <pattern> [pattern...]
-# 轮询日志，出现任一 pattern 返回 0；超时返回 1。
+# Poll the log; return 0 when any pattern appears, 1 on timeout.
 wait_for_log() {
     _wfl_log="$1"; _wfl_timeout="$2"; shift 2
     _wfl_n=0
@@ -60,7 +60,7 @@ wait_for_log() {
 }
 
 # wait_for_log_pid <log> <seconds> <pid> <pattern> [pattern...]
-# 同 wait_for_log，但 pid 已退出时提前返回 1。
+# Like wait_for_log, but returns 1 early when the pid has exited.
 wait_for_log_pid() {
     _wlp_log="$1"; _wlp_timeout="$2"; _wlp_pid="$3"; shift 3
     _wlp_n=0

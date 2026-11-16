@@ -2,20 +2,20 @@
 set -eu
 
 # =====================================================================
-# LeopardOS 安装介质 ISO 构建 (MBR + 追加分区，可 dd 写入 U 盘)
+# LeopardOS install media ISO build (MBR + appended partition, dd-able to a USB stick)
 #
-# 结构:
+# Layout:
 #   live root → live-root.img (XJPAK10)
-#   efi.img   = FAT32 镜像，包含 BOOTX64.EFI、kernel.krl、live-root.img
-#   ISO       = MBR 分区表 + El Torito:
-#               - MBR 中包含 1 个类型为 0xEF 的分区，直接指向 efi.img
-#               - 同一 efi.img 同时作为 El Torito 的 EFI 引导镜像
+#   efi.img   = FAT32 image holding BOOTX64.EFI, kernel.krl, live-root.img
+#   ISO       = MBR partition table + El Torito:
+#               - the MBR holds one 0xEF-type partition pointing at efi.img
+#               - the same efi.img also serves as the El Torito EFI boot image
 #
-# 兼容性:
-#   * dd 到 U 盘 → UEFI 固件通过 MBR 中的 0xef 分区加载 \EFI\BOOT\BOOTX64.EFI
-#   * 刻录光盘   → 走 El Torito（efi.img 需 ≤ 32 MiB）
+# Compatibility:
+#   * dd to USB   → UEFI firmware loads \EFI\BOOT\BOOTX64.EFI via the 0xef MBR partition
+#   * burned disc → uses El Torito (efi.img must be <= 32 MiB)
 #
-# 依赖: python3、dosfstools、mtools、xorriso
+# Dependencies: python3, dosfstools, mtools, xorriso
 # =====================================================================
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
@@ -29,7 +29,7 @@ FAT_MIB="${FAT_MIB:-64}"
 ISO_LABEL="${ISO_LABEL:-LEOPARD}"
 LIVEROOT="${LIVEROOT:-$REPO/liveroot}"
 
-# ---- 依赖检查 ----------------------------------------------------------
+# ---- dependency check ---------------------------------------------------
 missing=""
 for c in python3 dd mkfs.vfat mmd mcopy xorriso; do
     command -v "$c" >/dev/null 2>&1 || missing="$missing $c"
@@ -40,14 +40,14 @@ if [ -n "$missing" ]; then
     exit 1
 fi
 
-# ---- 准备工作目录 ------------------------------------------------------
+# ---- prepare work directory ---------------------------------------------
 rm -rf "$WORK"
 mkdir -p "$WORK"
 [ -d "$LIVEROOT" ] || { echo "live root 目录不存在: $LIVEROOT" >&2; exit 1; }
 
-# ---- 打包 live root ----------------------------------------------------
-# Defense in depth: make_iso 也可能直接消费一个已经组装好的 liveroot。
-# PE 可执行文件没有 x 位时，initrd 启动会报 "Not Executable"。
+# ---- pack live root ----------------------------------------------------
+# Defense in depth: make_iso may also consume an already assembled liveroot.
+# PE executables without the x bit make initrd boot report "Not Executable".
 find "$LIVEROOT/apps" "$LIVEROOT/system" -type f -name '*.elf' \
     -exec chmod 0755 {} + 2>/dev/null || true
 for f in "$LIVEROOT"/apps/system/xbps-*; do
@@ -57,7 +57,7 @@ done
 echo "打包 live root → live-root.img ..."
 python3 "$ROOT/makepak.py" "$LIVEROOT" "$WORK/live-root.img"
 
-# ---- 构建 FAT32 ESP ----------------------------------------------------
+# ---- build FAT32 ESP ---------------------------------------------------
 echo "构建 FAT32 ESP (${FAT_MIB} MiB) ..."
 dd if=/dev/zero of="$EFI_IMG" bs=1M count="$FAT_MIB" status=none
 mkfs.vfat -F 32 "$EFI_IMG" >/dev/null 2>&1
@@ -67,7 +67,7 @@ mcopy -i "$EFI_IMG" "$PROJ/OpenXSKernel/out/kernel.krl" ::/system/kernel.krl
 mcopy -i "$EFI_IMG" "$WORK/live-root.img"               ::/system/live-root.img
 mcopy -i "$EFI_IMG" "$ROOT/boot.conf"                   ::/system/boot.conf
 
-# ---- 提示 El Torito 32 MiB 限制 ---------------------------------------
+# ---- warn about the El Torito 32 MiB limit -----------------------------
 if [ "$FAT_MIB" -gt 32 ]; then
     echo "" >&2
     echo "注意: FAT_MIB=${FAT_MIB} > 32 MiB。" >&2
@@ -77,7 +77,7 @@ if [ "$FAT_MIB" -gt 32 ]; then
     echo "" >&2
 fi
 
-# ---- 生成 ISO (MBR + 追加分区) ----------------------------------------
+# ---- generate ISO (MBR + appended partition) ---------------------------
 echo "生成 ISO ..."
 rm -f "$OUT_ISO"
 xorriso -as mkisofs -o "$OUT_ISO" \

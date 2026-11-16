@@ -1,13 +1,14 @@
 #!/bin/sh
 set -eu
 
-# 组装最小预安装环境（PE）和 /media 本地包仓库。
+# Assemble the minimal preinstall environment (PE) and the /media local package repo.
 #
-#   live/pe.list    → PE：只放安装目标系统之前就要用的文件
-#   leopard-packages/media.list → /media：目标系统包，由 xbps 安装
+#   live/pe.list    → PE: only files needed before installing the target system
+#   leopard-packages/media.list → /media: target system packages, installed by xbps
 #
-# 不再扫描所有兄弟仓库的 out/：/media 只从
-# leopard-packages/hostdir/binpkgs 取包，避免旧包/废弃包混入介质。
+# No longer scans the out/ of every sibling repo: /media takes packages only
+# from leopard-packages/hostdir/binpkgs, so stale/abandoned packages never
+# leak into the media.
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$ROOT/.." && pwd)
@@ -23,7 +24,7 @@ die() {
         exit 1
 }
 
-# --- 1. 准备受控的本地仓库 ------------------------------------------------
+# --- 1. Prepare the controlled local repository ---------------------------
 if [ "${LEOPARD_SYNC:-1}" = "1" ]; then
         [ -x "$PKG_DIR/leopard-src" ] || die "missing $PKG_DIR/leopard-src"
         sh "$PKG_DIR/leopard-src" sync
@@ -38,7 +39,7 @@ rm -rf "$LIVEROOT"
 mkdir -p "$LIVEROOT/system/leopard" "$LIVEROOT/system/config" "$LIVEROOT/config" \
          "$LIVEROOT/apps/system" "$MEDIA"
 
-# --- 2. 最小 PE -----------------------------------------------------------
+# --- 2. Minimal PE --------------------------------------------------------
 copy_pe() {
         while read -r src dst; do
                 case "$src" in
@@ -60,9 +61,9 @@ copy_pe() {
 }
 copy_pe
 
-# PE 里的 .elf / xbps 工具必须是可执行的。源码树的 mode 可能被归档/复制
-# 过程丢掉；这里统一修正，并在离开前做一次硬校验，避免生成一个
-# “Not Executable” 的 initrd。
+# The .elf / xbps tools in the PE must be executable. The source tree mode can
+# be lost during archiving/copying; fix it here uniformly and hard-check before
+# leaving, so we never produce a "Not Executable" initrd.
 ensure_pe_modes() {
         find "$LIVEROOT/apps" "$LIVEROOT/system" -type f -name '*.elf' \
                 -exec chmod 0755 {} + 2>/dev/null || true
@@ -80,9 +81,9 @@ ensure_pe_modes() {
 }
 ensure_pe_modes
 
-# 安装选项：无头自动安装写 auto=1，否则用默认交互配置
+# Install options: headless auto install writes auto=1, else use the default interactive config
 if [ -n "${INSTALLER_ARGS:-}" ]; then
-        # 从 INSTALLER_ARGS 取目标盘（如 'sata0 --yes'）
+        # take the target disk from INSTALLER_ARGS (e.g. 'sata0 --yes')
         set -- $INSTALLER_ARGS
         profile="${INSTALLER_PROFILE:-modern}"
         printf 'auto=1\ndisk=%s\nprofile=%s\nscheme=%s\nfinish=%s\n' "${1:-sata0}" "$profile" "$profile" "${INSTALLER_FINISH:-reboot}" > "$LIVEROOT/config/leopard-install.conf"
@@ -96,11 +97,11 @@ else
         cp "$PROJ/leopard-installer/data/leopard-install.conf" "$LIVEROOT/config/leopard-install.conf"
 fi
 
-# live initrc：conhost 拥有 console/VT，在 PTY 上跑 installer
-# 编排器不解析 argv；auto/disk 等选项走 /config/leopard-install.conf
+# live initrc: conhost owns the console/VT and runs the installer on a PTY
+# The orchestrator does not parse argv; auto/disk etc. come from /config/leopard-install.conf
 printf '# Leopard live 环境\nrespawn /apps/leopard/leopard-conhost.elf /apps/system/leopard-installer.elf\n' > "$LIVEROOT/system/config/initrc"
 
-# --- 3. /media：只包含 media.list 的包 + 索引 -----------------------------
+# --- 3. /media: only the packages in media.list + index -------------------
 copy_media() {
         count=0
         for pkg in $(sh "$PKG_DIR/leopard-src" list); do

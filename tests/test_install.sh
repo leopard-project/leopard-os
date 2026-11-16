@@ -1,18 +1,21 @@
 #!/bin/sh
 set -eu
 
-# 一键无头安装测试：空盘 -> live ISO -> 零输入自动安装 -> 断言串口日志。
+# One-shot headless install test: empty disk -> live ISO -> zero-input auto install
+# -> assert on the serial log.
 #
-# 优化点：
-#   - auto 安装使用 finish=shutdown，装完立即关机，不再空等 TIMEOUT；
-#   - 日志出现完成/失败标记后主动结束 QEMU（wait_for_log），单次测试更快；
-#   - 失败时自动打印日志尾部，便于定位。
+# Optimizations:
+#   - auto install uses finish=shutdown, so it powers off right away instead of
+#     idling until TIMEOUT;
+#   - stop QEMU early once a done/failed marker appears (wait_for_log), making
+#     each run faster;
+#   - on failure, automatically print the log tail for triage.
 #
-# 环境变量：
-#   BUILD=1        先打包所有组件（默认 0，假定已构建）
-#   TIMEOUT=300    最长等待秒数（有早期退出，通常远小于它）
-#   WORK=路径       工作目录（默认 .testwork）
-#   KEEP=1         保留工作目录（默认清理）
+# Environment variables:
+#   BUILD=1        pack all components first (default 0, assumes built)
+#   TIMEOUT=300    max wait in seconds (early exit usually returns far sooner)
+#   WORK=path      work directory (default .testwork)
+#   KEEP=1         keep the work directory (default: clean up)
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$ROOT/.." && pwd)
@@ -46,12 +49,12 @@ env HEADLESS=1 QEMU_NO_REBOOT=1 QEMU_SERIAL="file:$LOG" \
     VM_DISK="$DISK" OUT_ISO="$ISO" sh "$REPO/vm/run_install.sh" >/dev/null 2>&1 &
 QPID=$!
 
-# 完成标记出现后给 QEMU 一点收尾时间；进程自行退出则直接结束。
+# After the done marker appears, give QEMU a moment to wrap up; if the process exits on its own, end right away.
 if wait_for_log_pid "$LOG" "$TIMEOUT" "$QPID" \
         "installer: all steps complete." \
         "installer: shutting down" \
         "installer: rebooting"; then
-    # 正常路径：finish=shutdown 应让 QEMU 自己退出；最多等 15s 兜底。
+    # Happy path: finish=shutdown should make QEMU exit by itself; wait up to 15s as a fallback.
     _wait=0
     while [ "$_wait" -lt 15 ] && kill -0 "$QPID" 2>/dev/null; do
         sleep 1

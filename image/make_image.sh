@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-# LeopardOS 一键全流程：先打包所有组件（../build/build_all.sh），再组装镜像。
+# LeopardOS one-shot flow: pack all components first (../build/build_all.sh), then assemble the image.
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 

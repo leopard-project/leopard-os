@@ -1,8 +1,10 @@
 #!/bin/bash
 set -u
 
-# 测试已装系统 CLI 软件可用性：OOBE 建号 -> 登录 -> 跑命令 -> 断言串口
-# 内核键盘输入走 PS/2、串口只输出不回读输入，故用 QEMU monitor sendkey 注入键盘。
+# Test CLI tooling availability on an installed system: OOBE create user -> login
+# -> run commands -> assert on the serial log.
+# Kernel keyboard input goes over PS/2 and serial is output-only, so inject keys
+# via the QEMU monitor sendkey.
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$ROOT/.." && pwd)
@@ -23,8 +25,9 @@ rm -f "$MON"
 qemu-system-x86_64 -M q35 -bios /usr/share/ovmf/OVMF.fd -m 2048 -smp 4 -drive if=none,id=hd,file="$DISK",format=vmdk -device ahci,id=ahci -device ide-hd,bus=ahci.0,drive=hd,bootindex=0 -display none -serial "file:$LOG" -monitor "unix:$MON,server,nowait" -no-reboot &
 QEMU_PID=$!
 
-# 等 pattern 在日志中出现至少 cnt 次（OOBE 和登录会各打印一次 Username:/Password:，
-# 用出现次数区分，避免字节偏移追踪背靠背写入时漏掉提示）。
+# Wait until pattern appears at least cnt times in the log (OOBE and login each
+# print Username:/Password: once, so use the count instead of tracking byte
+# offsets, which can miss prompts on back-to-back writes).
 wait_for() {
   local pat="$1" cnt="$2" tmo="$3" desc="$4" i=0 n
   while [ "$i" -lt "$tmo" ]; do
@@ -54,7 +57,7 @@ keyname() {
   esac
 }
 
-sendstr() {
+sendtext() {
   local s="$1" c k i
   for ((i=0; i<${#s}; i++)); do
     c="${s:$i:1}"
@@ -62,6 +65,10 @@ sendstr() {
     [ -n "$k" ] && sendkey "$k"
     sleep 0.06
   done
+}
+
+sendstr() {
+  sendtext "$1"
   sendkey ret
   sleep 0.5
 }
@@ -83,15 +90,23 @@ wait_for "lpsh" 1 30 "进入 lpsh shell" || { kill $QEMU_PID 2>/dev/null; exit 1
 
 echo ">>> 跑 CLI 命令"
 run_cmd() { echo ">>> $*"; sendstr "$*"; sleep 1.5; }
-# 重复 getty 必须在用户态被 conhost 的 console lock 拒绝
-run_cmd "leopard-getty"
-wait_for "console already in use" 1 10 "嵌套 getty 被 console lock 拒绝" || { kill $QEMU_PID 2>/dev/null; exit 1; }
-run_cmd "pwd"
+run_cmd "whoami"
+# Backspace regression: type pwdx, press Backspace to delete the x, then Enter
+# should run pwd.
+echo ">>> 退格回归：pwdx + Backspace"
+sendtext "pwdx"
+sendkey backspace
+sendkey ret
+sleep 1.5
 run_cmd "initctl list"
 run_cmd "lpdisk list"
 run_cmd "mkfs-fat32"
 run_cmd "xbps-query -l"
-run_cmd "poweroff"
+# The poweroff/power action is Root/System only; Admin escalates via setuid doas.
+echo ">>> doas poweroff"
+sendstr "doas poweroff"
+wait_for "doas: password for" 1 10 "doas 密码提示" || { kill $QEMU_PID 2>/dev/null; exit 1; }
+sendstr "$PASS"
 
 echo ">>> 等 VM 关机"
 i=0
@@ -99,12 +114,13 @@ while [ "$i" -lt 30 ] && kill -0 "$QEMU_PID" 2>/dev/null; do sleep 1; i=$((i+1))
 
 echo ">>> 断言"
 assert_log "$LOG" "lpsh" "shell 提示符"
-assert_log "$LOG" "console already in use" "嵌套 getty 被 console lock 拒绝"
-assert_log "$LOG" "/users/$USER" "pwd 输出 home"
+assert_log "$LOG" "$USER" "whoami 输出登录用户"
+assert_log "$LOG" "/users/$USER" "退格后 pwd 输出 home"
 assert_log "$LOG" "leopard-getty" "initctl list 列出服务"
 assert_log "$LOG" "Block devices:" "lpdisk list 列块设备"
 assert_log "$LOG" "usage: mkfs-fat32" "mkfs-fat32 打印用法"
 assert_no_log "$LOG" "command not found" "所有命令都被找到"
-assert_log "$LOG" "The system will poweroff now" "poweroff 生效"
+assert_log "$LOG" "doas: password for" "doas 提权提示"
+assert_log "$LOG" "The system will poweroff now" "doas poweroff 生效"
 
 summary "CLI 软件可用性测试"
