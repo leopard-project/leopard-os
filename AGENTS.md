@@ -59,9 +59,13 @@ docs/       操作手册（TESTING.md）
   安装器另外把步骤日志/顶层消息直接镜像到串口；因此 `tests/test_install.sh`
   和 `tests/test_boot.sh` 只 grep QEMU serial 日志即可。串口仍是输出-only，
   键盘输入走 PS/2，`test_cli.sh` / `test_install_tui.sh` 用 QEMU monitor 注入。
-- **PTY fd 引用计数**：`vfs_close()` 只在 `node->refcount == 0` 时调用 PTY
-  close 回调。fork 出的子进程替换 fd 1/2 时不能把 `slave_fds` 减到 0，否则
-  conhost 往 master 写键盘会得到 EIO。TUI 安装依赖这条修复。
+- **PTY fd 计数**：`vfs_close()` 对 PTY 的每次 close 都要调用 close 回调；
+  `slave_fds` / `master_fds` 是句柄计数，不是节点引用计数。不要改成只在
+  `node->refcount == 0` 时调用：slave 节点有 `pair->slave_node` 的创建引用，
+  refcount 永远不归零，conhost 会等不到 master EOF，OOBE 退出后 getty 不重启。
+- **conhost 会话收尾**：`leopard-conhost 1.0_6` 在 `waitpid()` 看到会话子进程
+  退出（或 ECHILD）后立即关闭用于 `TCGETS` 的缓存 slave fd，否则这个额外
+  slave 引用会拖住 PTY，master 读不到 EOF。
 - **安装器 TUI**：`main.c` 独占 lpcurses 屏幕；步骤通过 `LI_UI_FD` /
   `LI_UI_OUT_FD` 发菜单/输入/确认请求。`auto=1` 和非 tty 不初始化 curses；
   `LEOPARD_INSTALL_TUI=0` 强制行模式。
@@ -79,8 +83,9 @@ docs/       操作手册（TESTING.md）
   镜像从 live-root.img 拆出去，并在引导器/内核侧提供访问方式，尚未实现。
 - xbps 包/repodata 用 **gzip** 压缩（不是 zstd）——zstd 会触发上游内存 bug（见 OpenXSKernel AGENTS.md）。
 - OVMF 用 `/usr/share/ovmf/OVMF.fd`（合并版），不要用 `OVMF_CODE_4M.fd` 直喂 `-bios`。
-- 版本：OpenXSKernel v2.2.1_1（本次重建：修复 PTY fd 引用计数，不升版本）、
+- 版本：OpenXSKernel v2.2.1_1（本次重建：移除 XAPI 文本 syscall；PTY fd
+  实验已回退，不升版本）、
   OpenXSBoot 2.1.1_2、leopard-base 1.0.2_1、leopard-rc 1.0_4、
-  leopard-getty 1.0_5、leopard-conhost 1.0_5、leopard-doas 1.0_2、
+  leopard-getty 1.0_5、leopard-conhost 1.0_6、leopard-doas 1.0_2、
   leopard-ime 1.1_1、leopard-shell 1.0_5、leopard-utils 1.0_2、
   leopard-installer 1.6.0_1、lpcurses 1.0_2、其余 1.0_1。
