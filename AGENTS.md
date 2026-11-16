@@ -74,4 +74,5 @@ docs/       操作手册（TESTING.md）
 - 版本：OpenXSKernel v2.2.1_1（本次只重建，不升版本）、OpenXSBoot 2.1.1_2、
   leopard-base 1.0.2_1、leopard-rc 1.0_4、leopard-getty 1.0_5、
   leopard-conhost 1.0_5、leopard-doas 1.0_2、leopard-ime 1.1_1、
-  leopard-shell 1.0_3、leopard-installer 1.5.1_1、其余 1.0_1。
+  leopard-shell 1.0_4、leopard-utils 1.0_2、leopard-installer 1.5.1_1、
+  其余 1.0_1。
